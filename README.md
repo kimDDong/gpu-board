@@ -1,79 +1,77 @@
-# Vuetify (Default)
+# Prepare(Mac OS 기준)
 
-This is the official scaffolding tool for Vuetify, designed to give you a head start in building your new Vuetify application. It sets up a base template with all the necessary configurations and standard directory structure, enabling you to begin development without the hassle of setting up the project from scratch.
+## nvm 설치
+```
+brew install nvm
+```
+## node 설치
+```
+ nvm install --lts
+```
+확인 : `nvm version` -> v22.16.0
+## yarn 설치
+```
+npm install -g yarn
+```
 
-## ❗️ Important Links
+# Setup
 
-- 📄 [Docs](https://vuetifyjs.com/)
-- 🚨 [Issues](https://issues.vuetifyjs.com/)
-- 🏬 [Store](https://store.vuetifyjs.com/)
-- 🎮 [Playground](https://play.vuetifyjs.com/)
-- 💬 [Discord](https://community.vuetifyjs.com)
+## Clone repo
 
-## 💿 Install
+```
+git clone https://github.com/jugangdae/gpu-board
+```
 
-Set up your project using your preferred package manager. Use the corresponding command to install the dependencies:
+## Install pacakges
+```
+cd gpu-board
+npm i
+```
 
-| Package Manager                                                | Command        |
-|---------------------------------------------------------------|----------------|
-| [yarn](https://yarnpkg.com/getting-started)                   | `yarn install` |
-| [npm](https://docs.npmjs.com/cli/v7/commands/npm-install)     | `npm install`  |
-| [pnpm](https://pnpm.io/installation)                          | `pnpm install` |
-| [bun](https://bun.sh/#getting-started)                        | `bun install`  |
+## Test
 
-After completing the installation, your environment is ready for Vuetify development.
-
-## ✨ Features
-
-- 🖼️ **Optimized Front-End Stack**: Leverage the latest Vue 3 and Vuetify 3 for a modern, reactive UI development experience. [Vue 3](https://v3.vuejs.org/) | [Vuetify 3](https://vuetifyjs.com/en/)
-- 🗃️ **State Management**: Integrated with [Pinia](https://pinia.vuejs.org/), the intuitive, modular state management solution for Vue.
-- 🚦 **Routing and Layouts**: Utilizes Vue Router for SPA navigation and vite-plugin-vue-layouts for organizing Vue file layouts. [Vue Router](https://router.vuejs.org/) | [vite-plugin-vue-layouts](https://github.com/JohnCampionJr/vite-plugin-vue-layouts)
-- ⚡ **Next-Gen Tooling**: Powered by Vite, experience fast cold starts and instant HMR (Hot Module Replacement). [Vite](https://vitejs.dev/)
-- 🧩 **Automated Component Importing**: Streamline your workflow with unplugin-vue-components, automatically importing components as you use them. [unplugin-vue-components](https://github.com/antfu/unplugin-vue-components)
-
-These features are curated to provide a seamless development experience from setup to deployment, ensuring that your Vuetify application is both powerful and maintainable.
-
-## 💡 Usage
-
-This section covers how to start the development server and build your project for production.
-
-### Starting the Development Server
-
-To start the development server with hot-reload, run the following command. The server will be accessible at [http://localhost:3000](http://localhost:3000):
-
-```bash
+```
 yarn dev
 ```
 
-(Repeat for npm, pnpm, and bun with respective commands.)
+# TODO
 
-> Add NODE_OPTIONS='--no-warnings' to suppress the JSON import warnings that happen as part of the Vuetify import mapping. If you are on Node [v21.3.0](https://nodejs.org/en/blog/release/v21.3.0) or higher, you can change this to NODE_OPTIONS='--disable-warning=5401'. If you don't mind the warning, you can remove this from your package.json dev script.
+## 역할 분담
+1. 대시보드 (metrics/KPI/실시간 모니터링/맞춤형 대시보드)
+2. 자원 관리 (GPU 자원 현황, 회수, 할당, 정책 등)
+3. 사용자 관리 + 보고서 (계정관리/권한, 통계보고 화면까지)
 
-### Building for Production
 
-To build your project for production, use:
+## PPT 기준
+- 대시보드: 
+    - 주요 정보의 시각적 표현: 전체 자원 활용률 (CPU, GPU, 메모리), 자원 유휴 시간 및 개별 사용자별 자원 사용량과 같은 주요 성능 지표 (KPI) 및 시스템 지표를 시각적으로 표시
+    - 실시간 모니터링: GPU 클러스터 자원 및 시스템 자체의 현재 상태 및 건강 상태를 추적하기 위한 실시간 모니터링 기능을 제공
+    - 맞춤형 대시보드: 관리자가 보고 싶은 지표와 정보를 선택하여 대시보드 보기를 사용자 지정할 수 있는 기능을 탐색
 
-```bash
-yarn build
+- 자원 관리: 
+    - 할당된 자원 및 사용자 정보 보기: 현재 할당된 모든 GPU 자원과 이를 할당받은 사용자를 명확하게 볼 수 있는 기능을 관리자에게 제공
+    - 자원 회수 및 사용 기간 조정: 관리자가 사용자에게 할당된 자원을 수동으로 회수 (취소)하고 기존 할당에 대한 사용 기간을 조정할 수 있는 기능 
+    - 자원 할당 정책 구성: 관리자가 최대 사용 기간 및 사용자별 할당 제한과 같은 자원 할당 정책을 구성하고 관리
+
+- 사용자 관리:
+    - 사용자 계정 관리: 관리자가 시스템에서 사용자 계정을 생성, 수정 및 삭제할 수 있는 기능 제공  
+    - 사용자 역할 및 권한 관리: 관리자, 일반 사용자 등 사용자 역할을 관리하고 각 역할에 특정 권한을 할당하는 시스템
+
+- 보고서: 
+    - 자원 사용량 보고서: 총 사용량, 특정 사용자별 사용량 및 시간별 사용량과 같은 자원 사용 패턴에 대한 보고서를 생성
+    - 유휴 시간 보고서: 자원이 유휴 상태였던 시간에 대한 보고서를 제공하여 잠재적인 비효율성을 식별
+
+# Note
+1. `src/pages`에 각 페이지에 해당하는 기능 개발
+2. `src/components`에 필요한 부품 만들어서 재사용 가능
+
+---
 ```
+yarn create vuetify
 
-(Repeat for npm, pnpm, and bun with respective commands.)
-
-Once the build process is completed, your application will be ready for deployment in a production environment.
-
-## 💪 Support Vuetify Development
-
-This project is built with [Vuetify](https://vuetifyjs.com/en/), a UI Library with a comprehensive collection of Vue components. Vuetify is an MIT licensed Open Source project that has been made possible due to the generous contributions by our [sponsors and backers](https://vuetifyjs.com/introduction/sponsors-and-backers/). If you are interested in supporting this project, please consider:
-
-- [Requesting Enterprise Support](https://support.vuetifyjs.com/)
-- [Sponsoring John on Github](https://github.com/users/johnleider/sponsorship)
-- [Sponsoring Kael on Github](https://github.com/users/kaelwd/sponsorship)
-- [Supporting the team on Open Collective](https://opencollective.com/vuetify)
-- [Becoming a sponsor on Patreon](https://www.patreon.com/vuetify)
-- [Becoming a subscriber on Tidelift](https://tidelift.com/subscription/npm/vuetify)
-- [Making a one-time donation with Paypal](https://paypal.me/vuetify)
-
-## 📑 License
-[MIT](http://opensource.org/licenses/MIT)
-
-Copyright (c) 2016-present Vuetify, LLC
+✔ Project name: gpu-board
+✔ Which preset would you like to install?: Default (Adds routing, ESLint & SASS variables)
+✔ Use TypeScript?: No
+✔ Would you like to install dependencies with yarn, npm, pnpm, or bun?: yarn
+✔ Install Dependencies?: Yes
+```
