@@ -6,8 +6,8 @@
         v-for="(core, idx) in cpuCores"
         :key="core.id"
         cols="12"
-        sm="6"
-        md="4"
+        sm="2"
+        md="2"
       >
         <div class="d-flex justify-space-between align-center mb-1">
           <span class="text-body2 font-weight-bold">코어 {{ core.id }}</span>
@@ -16,8 +16,9 @@
         <v-progress-linear
           :model-value="core.usage"
           height="18"
-          color="primary"
+          :color="getColor(core.usage)"
           striped
+          :max="100"
         />
       </v-col>
       <v-col v-if="!cpuCores.length">
@@ -34,6 +35,13 @@ import axios from 'axios'
 const cpuCores = ref([]) // [{ id: 0, usage: 12 }, ...]
 
 const INTERVAL =2000
+
+
+function getColor(val) {
+  if (val >= 90.0) return 'red'       // 위험(빨강)
+  if (val >= 80.0) return 'orange'   // 주의(주황)
+  return 'primary'
+}
 
 async function fetch() {
  try {

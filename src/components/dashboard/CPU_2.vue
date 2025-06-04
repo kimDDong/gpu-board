@@ -3,7 +3,7 @@
     <div class="text-caption mb-2 font-weight-bold">
       CPU 전체 사용률 실시간 모니터링 (Smoothie Chart)
     </div>
-    <canvas ref="smoothieCanvas" width="700" height="270"></canvas>
+    <canvas ref="smoothieCanvas" width="800" height="150"></canvas>
   </v-card>
 </template>
 
