@@ -47,6 +47,16 @@ def gpu_util_detail():
         gpus.append({'id': i, 'usage': round(value, 1)})
     return jsonify({"gpus": gpus})
 
+@app.route('/api/gpu/temp_detail')
+def gpu_temp_detail():
+    gpu_count =6
+    gpus = []
+    for i in range(gpu_count):
+        # 온도 30~80℃ 범위 랜덤값 (예시)
+        temp = round(random.uniform(30, 200), 1)
+        gpus.append({'id': i, 'temperature': temp})
+    return jsonify({"gpus": gpus})
+
 @app.route('/api/mem/total')
 def mem_total():
     return jsonify({"value": random.choice([64, 128, 256, 512])})
@@ -62,6 +72,80 @@ def idle_time():
 @app.route('/api/system/uptime')
 def up_time():
     return jsonify({"value": random.randint(0, 10000)})
+
+@app.route('/api/cpu_user_rank')
+def cpu_user_rank():
+    users = [f'user{i+1}' for i in range(20)]
+    selected_users = random.sample(users, 5)
+    # 차이 극대화: [0~1] 사이 난수의 3제곱(분포가 뾰족해짐)
+    raw = [random.random() **4.5 for _ in range(5)]  #0.4제곱이면 1에 가까운 값 많아짐
+    # 더 강하게: [random.random() ** exp for exp in (0.3~2)]로 조정 가능
+    total = sum(raw)
+    normalized = [round(v / total *100, 1) for v in raw]
+    # 합 보정
+    diff =100.0 - sum(normalized)
+    normalized[-1] = round(normalized[-1] + diff, 1)
+
+    data = [
+        {'user': u, 'cpu': val}
+        for u, val in zip(selected_users, normalized)
+    ]
+    # (정렬 필요하면 요청하신 방식대로)
+    data = sorted(data, key=lambda x: x['cpu'], reverse=True)
+    return jsonify({'users': data})
+
+@app.route('/api/gpu_user_rank')
+def gpu_user_rank():
+    users = [f'user{i+1}' for i in range(20)]
+    selected_users = random.sample(users, 5)
+    # 차이 극대화: [0~1] 사이 난수의 3제곱(분포가 뾰족해짐)
+    raw = [random.random() **4.5 for _ in range(5)]  #0.4제곱이면 1에 가까운 값 많아짐
+    # 더 강하게: [random.random() ** exp for exp in (0.3~2)]로 조정 가능
+    total = sum(raw)
+    normalized = [round(v / total *100, 1) for v in raw]
+    # 합 보정
+    diff =100.0 - sum(normalized)
+    normalized[-1] = round(normalized[-1] + diff, 1)
+
+    data = [
+        {'user': u, 'gpu': val}
+        for u, val in zip(selected_users, normalized)
+    ]
+    data = sorted(data, key=lambda x: x['gpu'], reverse=True)
+    return jsonify({'users': data})
+
+@app.route('/api/mem_user_rank')
+def mem_user_rank():
+    users = [f'user{i+1}' for i in range(20)]
+    selected_users = random.sample(users, 5)
+    # 차이 극대화: [0~1] 사이 난수의 3제곱(분포가 뾰족해짐)
+    raw = [random.random() **4.5 for _ in range(5)]  #0.4제곱이면 1에 가까운 값 많아짐
+    # 더 강하게: [random.random() ** exp for exp in (0.3~2)]로 조정 가능
+    total = sum(raw)
+    normalized = [round(v / total *100, 1) for v in raw]
+    # 합 보정
+    diff =100.0 - sum(normalized)
+    normalized[-1] = round(normalized[-1] + diff, 1)
+
+    data = [
+        {'user': u, 'mem': val}
+        for u, val in zip(selected_users, normalized)
+    ]
+    # (정렬 필요하면 요청하신 방식대로)
+    data = sorted(data, key=lambda x: x['mem'], reverse=True)
+    return jsonify({'users': data})
+
+
+@app.route('/api/idle_user_rank')
+def idle_user_rank():
+    import random
+    users = [f'user{i+1}' for i in range(20)]
+    data = sorted(
+        [{'user': u, 'idle': int(random.uniform(0, 500))} for u in users],
+        key=lambda x: x['idle'],
+        reverse=True
+    )[:5]
+    return jsonify({'users': data})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=8000, debug=True)
