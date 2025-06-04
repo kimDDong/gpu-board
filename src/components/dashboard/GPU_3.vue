@@ -9,7 +9,7 @@
         sm="2"
         md="2"
       >
-        <div class="d-flex justify-space-between align-center mb-1">
+        <div class="d-flex justify-space-between align-center mb-1 small">
           <span class="text-body2 font-weight-bold">GPU {{ gpu.id }}</span>
           <!-- 텍스트 색상도 온도별로 -->
           <span class="text-body2" :style="{color: getColor(gpu.temperature)}">
@@ -64,3 +64,9 @@ onMounted(() => {
 
 onUnmounted(() => intervalId && clearInterval(intervalId))
 </script>
+
+<style scoped>
+.small {
+ font-size: 65%;
+}
+</style>
