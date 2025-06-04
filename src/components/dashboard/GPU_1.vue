@@ -9,7 +9,7 @@
         sm="2"
         md="2"
       >
-        <div class="d-flex justify-space-between align-center mb-1">
+        <div class="d-flex justify-space-between align-center mb-1 small">
           <span class="text-body2 font-weight-bold">GPU {{ gpu.id }}</span>
           <span class="text-body2">{{ gpu.usage }}%</span>
         </div>
@@ -35,7 +35,7 @@ import axios from 'axios'
 const gpus = ref([]) // [{ id: 0, usage: 12 }, ...]
 
 let intervalId = null
-const INTERVAL =200
+const INTERVAL = 200
 
 function getColor(val) {
   if (val >= 90.0) return 'red'       // 위험(빨강)
@@ -59,3 +59,9 @@ onMounted(() => {
 })
 onUnmounted(() => intervalId && clearInterval(intervalId))
 </script>
+
+<style scoped>
+.small {
+ font-size: 65%;
+}
+</style>

@@ -1,0 +1,7 @@
+
+[250604]
+
+주강대 :   
+    
+    1. 템플릿 작성시 <template> ... </template>가 아닌 <template><v-container> ... </v-container></template> 사용하기
+    2. components 사용시 폴더 만들어서 사용

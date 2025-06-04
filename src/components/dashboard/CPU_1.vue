@@ -9,7 +9,7 @@
         sm="2"
         md="2"
       >
-        <div class="d-flex justify-space-between align-center mb-1">
+        <div class="d-flex justify-space-between align-center mb-1 small">
           <span class="text-body2 font-weight-bold">코어 {{ core.id }}</span>
           <span class="text-body2">{{ core.usage }}%</span>
         </div>
@@ -61,3 +61,9 @@ onMounted(() => {
 })
 onUnmounted(() => intervalId && clearInterval(intervalId))
 </script>
+
+<style scoped>
+.small {
+ font-size: 65%;
+}
+</style>
