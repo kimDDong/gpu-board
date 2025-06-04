@@ -1,7 +1,11 @@
-<!-- App.vue -->
 <template>
   <v-app>
-    <v-navigation-drawer app>
+    <v-navigation-drawer
+      v-model="drawer"
+      app
+      :permanent="false"
+      :width="240"
+    >
       <v-list>
         <v-list-item
           v-for="item in menuList"
@@ -14,19 +18,21 @@
     </v-navigation-drawer>
 
     <v-app-bar app color="primary" dark>
+      <v-app-bar-nav-icon @click="drawer = !drawer" />
       <v-app-bar-title>GPU 클러스터 관리자</v-app-bar-title>
     </v-app-bar>
 
     <v-main>
-      <v-container>
         <router-view />
-      </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+
+const drawer = ref(false)  // <- Toggle variable
 
 const router = useRouter()
 const route = useRoute()
@@ -41,6 +47,7 @@ const menuList = [
 function navigate(path) {
  if (route.path !== path) {
     router.push(path)
+    drawer.value = false // 메뉴 클릭시 닫고 싶으면 이 줄 추가
   }
 }
 
