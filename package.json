@@ -13,8 +13,10 @@
     "@fontsource/roboto": "5.2.5",
     "@mdi/font": "7.4.47",
     "axios": "^1.9.0",
+    "chart.js": "^4.4.9",
     "vue": "^3.5.13",
-    "vuetify": "^3.8.1"
+    "vue-chartjs": "^5.3.2",
+    "vuetify": "^3.8.7"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.3",
