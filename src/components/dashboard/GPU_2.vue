@@ -3,7 +3,7 @@
     <div class="text-caption mb-2 font-weight-bold">
       GPU별 실시간 사용률 모니터링 (Smoothie Chart)
     </div>
-    <canvas ref="smoothieCanvas" width="700" height="270"></canvas>
+    <canvas ref="smoothieCanvas" width="800" height="150"></canvas>
   </v-card>
 </template>
 
@@ -57,7 +57,7 @@ onMounted(async () => {
 
  // 차트 생성 및 각각 TimeSeries 추가
   chart = new SmoothieChart({
-    grid: { strokeStyle: '#333', fillStyle: '#000', lineWidth: 1, millisPerLine: 1000, verticalSections: 6 },
+    grid: { strokeStyle: '#333', fillStyle: '#000', lineWidth: 0.5, millisPerLine: 1000, verticalSections: 6 },
     labels: { fillStyle: '#333', fontSize: 14 },
     tooltip: true,
     tooltipLine: {strokeStyle:'#bbb'},
