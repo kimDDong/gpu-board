@@ -9,7 +9,23 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BarChart: typeof import('./src/components/BarChart.vue')['default']
+    BarSummary: typeof import('./src/components/BarSummary.vue')['default']
+    CPU_1: typeof import('./src/components/dashboard/CPU_1.vue')['default']
+    CPU_2: typeof import('./src/components/dashboard/CPU_2.vue')['default']
+    GPU_1: typeof import('./src/components/dashboard/GPU_1.vue')['default']
+    GPU_2: typeof import('./src/components/dashboard/GPU_2.vue')['default']
+    GPU_3: typeof import('./src/components/dashboard/GPU_3.vue')['default']
+    Heatmap: typeof import('./src/components/Heatmap.vue')['default']
+    KPI: typeof import('./src/components/dashboard/KPI.vue')['default']
+    ReportDialog: typeof import('./src/components/ReportDialog.vue')['default']
+    ResourceCalender: typeof import('./src/components/ResourceCalender.vue')['default']
+    ResourceSummary: typeof import('./src/components/ResourceSummary.vue')['default']
+    ResourceTable: typeof import('./src/components/ResourceTable.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    USER_CPU: typeof import('./src/components/dashboard/USER_CPU.vue')['default']
+    USER_GPU: typeof import('./src/components/dashboard/USER_GPU.vue')['default']
+    USER_IDLE: typeof import('./src/components/dashboard/USER_IDLE.vue')['default']
+    USER_MEM: typeof import('./src/components/dashboard/USER_MEM.vue')['default']
   }
 }

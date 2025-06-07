@@ -1,50 +1,59 @@
+<!-- src/components/BarChart.vue -->
 <template>
   <div>
-    <div style="height: 260px">
-      <canvas ref="canvas"></canvas>
-    </div>
-    <div class="text-center font-weight-bold mt-2">{{ title }}</div>
+    <h4>{{ title }}</h4>
+    <canvas ref="canvas"></canvas>
   </div>
 </template>
 
-<script setup>
-import { ref, watch, onMounted } from 'vue'
-import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
+<script>
+import { Bar, mixins } from 'vue-chartjs'
+const { reactiveProp } = mixins
 
-const props = defineProps({
-  labels: Array,
-  data: Array,
-  title: String,
-  color: { type: String, default: '#1976d2' }
-})
-
-const chart = ref(null)
-const canvas = ref(null)
-
-function draw() {
-  if (chart.value) {
-    chart.value.destroy()
-  }
-  chart.value = new Chart(canvas.value, {
-    type: 'bar',
-    data: {
-      labels: props.labels,
-      datasets: [{
-        label: props.title,
-        data: props.data,
-        backgroundColor: props.color,
-        borderRadius: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
+export default {
+  name: 'BarChart',
+  extends: Bar,
+  mixins: [reactiveProp],
+  props: {
+    labels: { type: Array, required: true },
+    data: { type: Array, required: true },
+    title: { type: String, default: '' },
+    color: { type: String, default: '#1976d2' }
+  },
+  computed: {
+    datacollection() {
+      return {
+        labels: this.labels,
+        datasets: [{
+          label: this.title,
+          backgroundColor: this.color,
+          data: this.data
+        }]
+      }
     }
-  })
+  },
+  data() {
+    return {
+      chartOptions: {
+        responsive: true,
+        legend: { display: false },
+        scales: {
+          xAxes: [{ ticks: { fontColor: '#444' } }],
+          yAxes: [{ ticks: { beginAtZero: true, fontColor: '#444' } }]
+        }
+      }
+    }
+  },
+  mounted() {
+    this.renderChart(this.datacollection, this.chartOptions)
+  },
+  watch: {
+    datacollection: {
+      handler(val) {
+        this.renderChart(val, this.chartOptions)
+      },
+      deep: true
+    }
+  }
 }
-
-onMounted(draw)
-watch(() => [props.labels, props.data], draw)
 </script>

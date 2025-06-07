@@ -1,67 +1,69 @@
-<!-- src/pages/resources.vue -->
 <template>
-  <v-row>
-    <!-- 할당된 GPU 자원 목록 -->
-    <v-col cols="12">
-      <v-card>
-        <v-card-title>
-          할당된 GPU 자원
-          <v-spacer/>
-          <v-btn color="primary" @click="openAssignDialog">자원 할당</v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-table>
-            <thead>
-              <tr>
-                <th>GPU 번호</th>
-                <th>사용자</th>
-                <th>사용 시작일</th>
-                <th>만료일</th>
-                <th>조치</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="r in gpuResources" :key="r.gpu_id">
-                <td>{{ r.gpu_id }}</td>
-                <td>{{ r.user }}</td>
-                <td>{{ r.start_date }}</td>
-                <td>{{ r.end_date }}</td>
-                <td>
-                  <v-btn size="small" color="error" @click="reclaimResource(r.gpu_id)">회수</v-btn>
-                  <v-btn size="small" color="info" @click="editPeriod(r)">기간조정</v-btn>
-                </td>
-              </tr>
-              <tr v-if="gpuResources.length === 0">
-                <td colspan="5" class="text-center">등록된 GPU 자원이 없습니다.</td>
-              </tr>
-            </tbody>
-          </v-table>
-        </v-card-text>
-      </v-card>
-    </v-col>
-
-    <!-- 자원 할당 정책 -->
-    <v-col cols="12" md="6" class="mt-5">
-      <v-card>
-        <v-card-title>자원 할당 정책</v-card-title>
-        <v-card-text>
-          <v-text-field
-            label="최대 사용 기간(일)"
-            v-model="policy.max_days"
-            type="number"
-          />
-          <v-text-field
-            label="사용자별 할당 제한"
-            v-model="policy.user_limit"
-            type="number"
-          />
-          <v-btn color="primary" @click="savePolicy">저장</v-btn>
-        </v-card-text>
-      </v-card>
-    </v-col>
-
-    <!-- 자원 할당 다이얼로그 -->
-    <v-dialog v-model="showAssignDialog" max-width="400">
+  <v-container>
+    <v-row>
+      <v-col>
+        <v-btn @click="assignDialog = true" color="primary" class="mb-3">
+          <v-icon left>mdi-plus</v-icon> 자원 할당
+        </v-btn>
+        <v-btn @click="showReport = true" color="info" class="mb-3 ml-3">
+          <v-icon left>mdi-chart-bar</v-icon> 자원 현황/보고서 보기
+        </v-btn>
+        <v-select
+          v-model="resourceTypeFilter"
+          :items="['ALL', 'GPU', 'CPU']"
+          label="자원 종류 필터"
+          dense
+          class="mb-3"
+          style="max-width: 160px;"
+        />
+      </v-col>
+    </v-row>
+    <!-- 사용자별 자원 테이블 -->
+    <v-row>
+      <v-col cols="12" md="6" v-for="user in users" :key="user">
+        <v-card class="mb-4">
+          <v-card-title>
+            <span>{{ user }} - 할당 자원</span>
+          </v-card-title>
+          <v-card-text>
+            <div v-if="userResources(user).length">
+              <v-table>
+                <thead>
+                  <tr>
+                    <th>종류</th>
+                    <th>번호</th>
+                    <th>기간</th>
+                    <th>조치</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="r in userResources(user)"
+                    :key="r.type + '_' + r.res_id"
+                  >
+                    <td>{{ r.type }}</td>
+                    <td>{{ r.res_id }}</td>
+                    <td>{{ r.start_date }} ~ {{ r.end_date }}</td>
+                    <td>
+                      <v-btn
+                        size="small"
+                        color="error"
+                        @click="reclaimResource(r)"
+                        >회수</v-btn>
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
+            <div v-else class="text-grey text-caption mt-2">
+              할당된 자원이 없습니다.
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+    <!-- 자원 할당 다이얼로그 (여러 개 동시) -->
+    <v-dialog v-model="assignDialog" max-width="520">
       <v-card>
         <v-card-title>자원 할당</v-card-title>
         <v-card-text>
@@ -70,12 +72,28 @@
             :items="users"
             v-model="assignUser"
             :rules="[v => !!v || '필수 입력']"
+            dense
             clearable
+          />
+          <v-select
+            label="자원 종류"
+            :items="['GPU','CPU']"
+            v-model="assignResourceType"
             dense
           />
-          <!-- 시작일 -->
+          <v-select
+            label="자원 선택(복수)"
+            v-model="selectedResourceKeys"
+            :items="filteredAvailableResources"
+            item-title="label"
+            item-value="key"
+            multiple
+            :rules="[v => v && v.length > 0 || '최소 1개 선택']"
+            dense
+          />
+
           <v-menu
-            v-model="assignStartMenu"
+            v-model="menu1"
             :close-on-content-click="false"
             transition="scale-transition"
             offset-y
@@ -83,23 +101,20 @@
             <template #activator="{ props }">
               <v-text-field
                 label="시작일"
-                v-model="assignStartStr"
+                v-model="startStr"
                 readonly
                 v-bind="props"
                 dense
               />
             </template>
             <v-date-picker
-              v-model="assignStartObj"
+              v-model="startObj"
+              @update:model-value="onPickStart"
               color="primary"
-              :max="assignEndObj"
-              show-adjacent-months
-              @update:model-value="onPickAssignStart"
             />
           </v-menu>
-          <!-- 만료일 -->
           <v-menu
-            v-model="assignEndMenu"
+            v-model="menu2"
             :close-on-content-click="false"
             transition="scale-transition"
             offset-y
@@ -107,188 +122,132 @@
             <template #activator="{ props }">
               <v-text-field
                 label="만료일"
-                v-model="assignEndStr"
+                v-model="endStr"
                 readonly
                 v-bind="props"
                 dense
               />
             </template>
             <v-date-picker
-              v-model="assignEndObj"
+              v-model="endObj"
+              @update:model-value="onPickEnd"
               color="primary"
-              :min="assignStartObj"
-              show-adjacent-months
-              @update:model-value="onPickAssignEnd"
             />
           </v-menu>
         </v-card-text>
         <v-card-actions>
-          <v-btn text @click="showAssignDialog = false">취소</v-btn>
-          <v-btn color="primary" @click="assignResource">할당</v-btn>
+          <v-btn text @click="closeAssignDialog">취소</v-btn>
+          <v-btn color="primary" @click="confirmAssign">할당</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!-- 사용기간 조정 다이얼로그 -->
-    <v-dialog v-model="showEditDialog" max-width="400">
-      <v-card>
-        <v-card-title>사용기간 조정</v-card-title>
-        <v-card-text>
-          <v-menu
-            v-model="editPeriodMenu"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            offset-y
-          >
-            <template #activator="{ props }">
-              <v-text-field
-                label="만료일 (YYYY-MM-DD)"
-                v-model="editPeriodStr"
-                readonly
-                v-bind="props"
-                dense
-              />
-            </template>
-            <v-date-picker
-              v-model="editPeriodObj"
-              color="primary"
-              :min="todayDate"
-              show-adjacent-months
-              @update:model-value="onPickEditPeriod"
-            />
-          </v-menu>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn text @click="showEditDialog = false">취소</v-btn>
-          <v-btn color="primary" @click="submitEditPeriod">적용</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-row>
+    <!-- 보고서 모달 -->
+    <ReportDialog v-model="showReport"/>
+  </v-container>
 </template>
 
-<script>
+<script setup>
+import { ref, computed } from 'vue'
 import axios from 'axios'
+import ReportDialog from '@/components/ReportDialog.vue'
 
-function formatDate(dateObj) {
-  if (!dateObj) return '';
-  const yyyy = dateObj.getFullYear();
-  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const dd = String(dateObj.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
-function parseDate(str) {
-  if (!str) return null;
-  const [y, m, d] = str.split('-');
-  return new Date(Number(y), Number(m) - 1, Number(d));
-}
+// 상태
+const users = ref([])
+const resources = ref([])
 
-export default {
-  data() {
-    return {
-      gpuResources: [],
-      policy: { max_days: '', user_limit: '' },
-      users: [],
-      // 할당
-      showAssignDialog: false,
-      assignUser: '',
-      assignStartObj: null,
-      assignEndObj: null,
-      assignStartStr: '',
-      assignEndStr: '',
-      assignStartMenu: false,
-      assignEndMenu: false,
-      // 기간 수정
-      showEditDialog: false,
-      editGpuId: null,
-      editPeriodObj: null,
-      editPeriodStr: '',
-      editPeriodMenu: false,
-      // 오늘 날짜
-      todayDate: new Date(),
-    }
-  },
-  methods: {
-    formatDate,
-    fetchResources() {
-      axios.get('http://127.0.0.1:5000/api/resources')
-        .then(res => { this.gpuResources = res.data })
-    },
-    fetchPolicy() {
-      axios.get('http://127.0.0.1:5000/api/policy')
-        .then(res => { this.policy = res.data })
-    },
-    fetchUsers() {
-      axios.get('http://127.0.0.1:5000/api/users')
-        .then(res => { this.users = res.data })
-    },
-    openAssignDialog() {
-      this.assignUser = ''
-      this.assignStartObj = null
-      this.assignEndObj = null
-      this.assignStartStr = ''
-      this.assignEndStr = ''
-      this.showAssignDialog = true
-    },
-    onPickAssignStart(val) {
-      this.assignStartObj = val
-      this.assignStartStr = this.formatDate(val)
-      this.assignStartMenu = false
-    },
-    onPickAssignEnd(val) {
-      this.assignEndObj = val
-      this.assignEndStr = this.formatDate(val)
-      this.assignEndMenu = false
-    },
-    assignResource() {
-      if (!this.assignUser || !this.assignStartObj || !this.assignEndObj) {
-        alert('모든 값을 입력하세요')
-        return
-      }
-      axios.post('http://127.0.0.1:5000/api/resources', {
-        user: this.assignUser,
-        start_date: this.assignStartStr,
-        end_date: this.assignEndStr
-      }).then(() => {
-        this.showAssignDialog = false
-        this.fetchResources()
-      })
-    },
-    reclaimResource(gpu_id) {
-      axios.post(`http://127.0.0.1:5000/api/resources/${gpu_id}/reclaim`)
-        .then(() => this.fetchResources())
-    },
-    editPeriod(resource) {
-      this.editGpuId = resource.gpu_id
-      this.editPeriodObj = parseDate(resource.end_date)
-      this.editPeriodStr = resource.end_date
-      this.showEditDialog = true
-    },
-    onPickEditPeriod(val) {
-      this.editPeriodObj = val
-      this.editPeriodStr = this.formatDate(val)
-      this.editPeriodMenu = false
-    },
-    submitEditPeriod() {
-      if (!this.editPeriodObj) {
-        alert('만료일을 선택하세요')
-        return
-      }
-      axios.patch(`http://127.0.0.1:5000/api/resources/${this.editGpuId}/period`, { end_date: this.editPeriodStr })
-        .then(() => {
-          this.showEditDialog = false
-          this.fetchResources()
-        })
-    },
-    savePolicy() {
-      axios.post('http://127.0.0.1:5000/api/policy', this.policy)
-        .then(() => alert('정책이 저장되었습니다.'))
-    },
-  },
-  mounted() {
-    this.fetchUsers()
-    this.fetchResources()
-    this.fetchPolicy()
+// 자원종류(GPU/CPU/ALL) 필터
+const resourceTypeFilter = ref('ALL')
+
+// 사용자별 자원 필터
+function userResources(user) {
+  let list = resources.value.filter(r => r.user === user)
+  if (resourceTypeFilter.value !== 'ALL') {
+    list = list.filter(r => r.type === resourceTypeFilter.value)
   }
+  return list
 }
+
+// 다중 자원 할당 팝업
+const assignDialog = ref(false)
+const assignUser = ref('')
+const assignResourceType = ref('GPU')
+const selectedResourceKeys = ref([])
+const startObj = ref(null)
+const endObj = ref(null)
+const startStr = ref('')
+const endStr = ref('')
+const menu1 = ref(false)
+const menu2 = ref(false)
+
+// 💡 자원 객체 → key, label만 반환 (item-text/item-value용)
+const availableResources = computed(() =>
+  resources.value
+    .filter(r => !r.user)
+    .map(r => ({
+      key: r.type + '-' + r.res_id,
+      label: `${r.type} ${r.res_id}`
+    }))
+)
+// 종류별 필터 적용 (GPU/CPU)
+const filteredAvailableResources = computed(() =>
+  availableResources.value.filter(r => r.key.startsWith(assignResourceType.value))
+)
+
+function onPickStart(v) {
+  startObj.value = v
+  startStr.value = v ? `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
+  menu1.value = false
+}
+function onPickEnd(v) {
+  endObj.value = v
+  endStr.value = v ? `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
+  menu2.value = false
+}
+function closeAssignDialog() {
+  assignDialog.value = false
+  assignUser.value = ''
+  assignResourceType.value = 'GPU'
+  selectedResourceKeys.value = []
+  startObj.value = null
+  endObj.value = null
+  startStr.value = ''
+  endStr.value = ''
+}
+
+async function confirmAssign() {
+  if (!assignUser.value || !selectedResourceKeys.value.length || !startStr.value || !endStr.value) {
+    alert('모든 값을 입력하세요'); return
+  }
+  for (const key of selectedResourceKeys.value) {
+    const [type, id] = key.split('-')
+    await axios.post('http://127.0.0.1:5000/api/allocations', {
+      res_id: Number(id),
+      type: type,
+      user: assignUser.value,
+      start_date: startStr.value,
+      end_date: endStr.value
+    })
+  }
+  await fetchData()
+  closeAssignDialog()
+}
+
+// 자원목록+유저 불러오기
+async function fetchData() {
+  resources.value = (await axios.get('http://127.0.0.1:5000/api/resources')).data
+  users.value = (await axios.get('http://127.0.0.1:5000/api/users')).data
+}
+fetchData()
+
+// 회수
+async function reclaimResource(r) {
+  await axios.post('http://127.0.0.1:5000/api/allocations/reclaim', {
+    res_id: r.res_id,
+    type: r.type
+  })
+  await fetchData()
+}
+
+// 보고서 모달
+const showReport = ref(false)
 </script>
