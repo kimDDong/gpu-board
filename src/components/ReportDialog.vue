@@ -2,7 +2,7 @@
   <v-dialog v-model="model" max-width="1200" persistent>
     <v-card>
       <v-card-title>
-        보고서 (월별 히트맵/상태/막대차트)
+        보고서 (현황/히트맵/막대차트)
         <v-spacer/>
         <v-btn icon @click="model=false"><v-icon>mdi-close</v-icon></v-btn>
       </v-card-title>
@@ -10,22 +10,44 @@
         <BarSummary />
         <Heatmap resourceType="GPU" />
         <Heatmap resourceType="CPU" />
-        <!-- GPU 차트 -->
-        <h3 class="mt-5">[GPU]</h3>
-        <div v-if="gpuLoaded">
-          <BarChart :labels="gpuDates" :data="gpuDaily" title="일별 GPU 사용량"/>
-          <BarChart :labels="gpuUsers" :data="gpuUser" title="사용자별 GPU 누적 사용일" color="#6c47ff"/>
-          <BarChart :labels="gpuIdleLabels" :data="gpuIdleValues" title="GPU별 유휴 일수" color="#43a047"/>
+        <div v-if="barLoaded">
+          <BarChart
+            :labels="usageDates"
+            :data="usageDaily"
+            title="일별 GPU 사용량"
+          />
+          <BarChart
+            :labels="usageUsers"
+            :data="usageUser"
+            title="GPU 사용자별 누적 사용일"
+            color="#6c47ff"
+          />
+          <BarChart
+            :labels="usageDatesCPU"
+            :data="usageDailyCPU"
+            title="일별 CPU 사용량"
+            color="#1976d2"
+          />
+          <BarChart
+            :labels="usageUsersCPU"
+            :data="usageUserCPU"
+            title="CPU 사용자별 누적 사용일"
+            color="#009688"
+          />
+          <BarChart
+            :labels="idleLabelsGPU"
+            :data="idleValuesGPU"
+            title="GPU별 유휴 일수"
+            color="#43a047"
+          />
+          <BarChart
+            :labels="idleLabelsCPU"
+            :data="idleValuesCPU"
+            title="CPU별 유휴 일수"
+            color="#ffc107"
+          />
         </div>
-        <div v-else>Loading GPU chart...</div>
-        <!-- CPU 차트 -->
-        <h3 class="mt-5">[CPU]</h3>
-        <div v-if="cpuLoaded">
-          <BarChart :labels="cpuDates" :data="cpuDaily" title="일별 CPU 사용량"/>
-          <BarChart :labels="cpuUsers" :data="cpuUser" title="사용자별 CPU 누적 사용일" color="#007aff"/>
-          <BarChart :labels="cpuIdleLabels" :data="cpuIdleValues" title="CPU별 유휴 일수" color="#bb66aa"/>
-        </div>
-        <div v-else>Loading CPU chart...</div>
+        <div v-else>Loading chart...</div>
       </v-card-text>
     </v-card>
   </v-dialog>
@@ -40,35 +62,43 @@ import axios from 'axios'
 
 const model = defineModel()
 
-// GPU
-const gpuLoaded = ref(false)
-const gpuDates = ref([]), gpuDaily = ref([]), gpuUsers = ref([]), gpuUser = ref([])
-const gpuIdleLabels = ref([]), gpuIdleValues = ref([])
+const usageDates = ref([])
+const usageDaily = ref([])
+const usageUsers = ref([])
+const usageUser = ref([])
+const idleLabelsGPU = ref([])
+const idleValuesGPU = ref([])
 // CPU
-const cpuLoaded = ref(false)
-const cpuDates = ref([]), cpuDaily = ref([]), cpuUsers = ref([]), cpuUser = ref([])
-const cpuIdleLabels = ref([]), cpuIdleValues = ref([])
+const usageDatesCPU = ref([])
+const usageDailyCPU = ref([])
+const usageUsersCPU = ref([])
+const usageUserCPU = ref([])
+const idleLabelsCPU = ref([])
+const idleValuesCPU = ref([])
+
+const barLoaded = ref(false)
 
 onMounted(async () => {
-  // GPU
+  // GPU 사용량
   const usage = (await axios.get('http://127.0.0.1:5000/api/reports/usage?type=GPU')).data
-  gpuDates.value = usage.dates
-  gpuDaily.value = usage.daily_usage
-  gpuUsers.value = usage.users
-  gpuUser.value = usage.user_usage
-  const idle = (await axios.get('http://127.0.0.1:5000/api/reports/idle?type=GPU')).data
-  gpuIdleLabels.value = idle.map(i => `${i.type}${i.res_id}`)
-  gpuIdleValues.value = idle.map(i => i.idle_days)
-  gpuLoaded.value = true
-  // CPU
-  const usage2 = (await axios.get('http://127.0.0.1:5000/api/reports/usage?type=CPU')).data
-  cpuDates.value = usage2.dates
-  cpuDaily.value = usage2.daily_usage
-  cpuUsers.value = usage2.users
-  cpuUser.value = usage2.user_usage
-  const idle2 = (await axios.get('http://127.0.0.1:5000/api/reports/idle?type=CPU')).data
-  cpuIdleLabels.value = idle2.map(i => `${i.type}${i.res_id}`)
-  cpuIdleValues.value = idle2.map(i => i.idle_days)
-  cpuLoaded.value = true
+  usageDates.value = usage.dates
+  usageDaily.value = usage.daily_usage
+  usageUsers.value = usage.users
+  usageUser.value = usage.user_usage
+  // CPU 사용량
+  const usageCPU = (await axios.get('http://127.0.0.1:5000/api/reports/usage?type=CPU')).data
+  usageDatesCPU.value = usageCPU.dates
+  usageDailyCPU.value = usageCPU.daily_usage
+  usageUsersCPU.value = usageCPU.users
+  usageUserCPU.value = usageCPU.user_usage
+  // GPU 유휴
+  const idleGPU = (await axios.get('http://127.0.0.1:5000/api/reports/idle?type=GPU')).data
+  idleLabelsGPU.value = idleGPU.map(i => `GPU${i.res_id}`)
+  idleValuesGPU.value = idleGPU.map(i => i.idle_days)
+  // CPU 유휴
+  const idleCPU = (await axios.get('http://127.0.0.1:5000/api/reports/idle?type=CPU')).data
+  idleLabelsCPU.value = idleCPU.map(i => `CPU${i.res_id}`)
+  idleValuesCPU.value = idleCPU.map(i => i.idle_days)
+  barLoaded.value = true
 })
 </script>

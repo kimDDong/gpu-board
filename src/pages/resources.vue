@@ -81,6 +81,7 @@
             v-model="assignResourceType"
             dense
           />
+          <!-- 문제의 부분: 꼭 아래처럼! -->
           <v-select
             label="자원 선택(복수)"
             v-model="selectedResourceKeys"
@@ -151,7 +152,7 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import ReportDialog from '@/components/ReportDialog.vue'
 
-// 상태
+// 데이터 상태
 const users = ref([])
 const resources = ref([])
 
@@ -167,10 +168,10 @@ function userResources(user) {
   return list
 }
 
-// 다중 자원 할당 팝업
+// --- 다중 자원 할당 팝업 ---
 const assignDialog = ref(false)
 const assignUser = ref('')
-const assignResourceType = ref('GPU')
+const assignResourceType = ref('GPU') // 기본값 GPU
 const selectedResourceKeys = ref([])
 const startObj = ref(null)
 const endObj = ref(null)
@@ -179,20 +180,23 @@ const endStr = ref('')
 const menu1 = ref(false)
 const menu2 = ref(false)
 
-// 💡 자원 객체 → key, label만 반환 (item-text/item-value용)
+// 할당 안된 자원만 리스트 (label만 나오게!!)
 const availableResources = computed(() =>
   resources.value
     .filter(r => !r.user)
     .map(r => ({
       key: r.type + '-' + r.res_id,
-      label: `${r.type} ${r.res_id}`
+      label: `${r.type} ${r.res_id}`,
+      res_id: r.res_id,
+      type: r.type
     }))
 )
-// 종류별 필터 적용 (GPU/CPU)
+// 필터된 할당 가능 자원 (팝업)
 const filteredAvailableResources = computed(() =>
-  availableResources.value.filter(r => r.key.startsWith(assignResourceType.value))
+  availableResources.value.filter(r => r.type === assignResourceType.value)
 )
 
+// 날짜 선택
 function onPickStart(v) {
   startObj.value = v
   startStr.value = v ? `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
@@ -219,10 +223,11 @@ async function confirmAssign() {
     alert('모든 값을 입력하세요'); return
   }
   for (const key of selectedResourceKeys.value) {
-    const [type, id] = key.split('-')
+    const res = availableResources.value.find(r => r.key === key)
+    if (!res) continue
     await axios.post('http://127.0.0.1:5000/api/allocations', {
-      res_id: Number(id),
-      type: type,
+      res_id: res.res_id,
+      type: res.type,
       user: assignUser.value,
       start_date: startStr.value,
       end_date: endStr.value

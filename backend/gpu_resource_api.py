@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from datetime import datetime, timedelta
-import calendar
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -18,7 +17,7 @@ for i in range(15):
 for i in range(15):
     resources.append({"res_id": i, "type": "CPU"})
 
-# 할당(대여) 정보 (예시: 일부 자원만 이미 할당)
+# 할당(대여) 정보 (예시)
 allocations = [
     # GPU 예시
     {"res_id": 0, "type": "GPU", "user": "홍길동", "start_date": "2024-05-03", "end_date": "2024-05-10"},
@@ -55,6 +54,10 @@ def get_resources():
 @app.route("/api/allocations", methods=["POST"])
 def allocate_resource():
     data = request.json
+    # 기존 동일 자원이 이미 할당돼 있으면 skip (중복 할당 방지)
+    for a in allocations:
+        if a["res_id"] == data["res_id"] and a["type"] == data["type"]:
+            return jsonify({"result": "already_allocated"})
     allocations.append({
         "res_id": data["res_id"],
         "type": data["type"],
@@ -129,24 +132,23 @@ def report_heatmap():
         "heatmap": heatmap
     })
 
-# 수정됨: GPU/CPU 동시 지원
 @app.route("/api/reports/usage", methods=["GET"])
 def report_usage():
     """
-    GPU/CPU 전체 자원 기준
-    ?type=GPU or ?type=CPU
-    2024년 7월(1~31일) 각 날짜별로, 사용중인 자원 개수
-    사용자별 누적 사용일수
-    전체 누적 사용일
+    type=GPU/CPU 쿼리 파라미터 지원. 
+    1. 전체 자원(15개) 기준
+    2. 2024년 7월(1일~31일) 각 날짜별로, 사용중인 자원 개수
+    3. 사용자별, 7월 한달 누적 사용일수
+    4. 전체 누적 사용일
     """
-    type_ = request.args.get("type", "GPU")
+    rtype = request.args.get('type', 'GPU')
     dates = [f"2024-07-{str(i).zfill(2)}" for i in range(1, 32)]
-    users_in_use = [a["user"] for a in allocations if a["type"] == type_]
+    users_in_use = [a["user"] for a in allocations if a["type"] == rtype]
     users_in_use = list(sorted(set(users_in_use)))
     user_usage = {u: 0 for u in users_in_use}
     daily_usage = {d: 0 for d in dates}
     for a in allocations:
-        if a["type"] != type_: continue
+        if a["type"] != rtype: continue
         s = datetime.strptime(a["start_date"], "%Y-%m-%d")
         e = datetime.strptime(a["end_date"], "%Y-%m-%d")
         for d in dates:
@@ -162,25 +164,27 @@ def report_usage():
         "total_usage": sum(user_usage.values())
     })
 
-# 수정됨: GPU/CPU 동시 지원
 @app.route("/api/reports/idle", methods=["GET"])
 def report_idle():
-    type_ = request.args.get("type", "GPU")
+    """
+    type=GPU/CPU 쿼리 파라미터 지원.
+    각 자원별, 현재 기준 유휴 일수 계산
+    """
+    rtype = request.args.get('type', 'GPU')
     now = datetime.now()
-    idle = []
-    for r in resources:
-        if r["type"] != type_:
-            continue
-        alloc = next((a for a in allocations if a["res_id"] == r["res_id"] and a["type"] == type_), None)
+    idle_list = []
+    type_res = [r for r in resources if r["type"] == rtype]
+    for r in type_res:
+        alloc = next((a for a in allocations if a["res_id"] == r["res_id"] and a["type"] == rtype), None)
         if alloc:
             end_dt = datetime.strptime(alloc["end_date"], "%Y-%m-%d")
-            idle_days = (now - end_dt).days if end_dt < now else 0
+            idle = (now - end_dt).days if end_dt < now else 0
             user = alloc["user"]
         else:
-            idle_days = 999  # 비어있는 자원은 아주 큰 수로
+            idle = 9999
             user = None
-        idle.append({"res_id": r["res_id"], "type": type_, "user": user, "idle_days": idle_days})
-    return jsonify(idle)
+        idle_list.append({"res_id": r["res_id"], "user": user, "idle_days": idle})
+    return jsonify(idle_list)
 
 if __name__ == "__main__":
     app.run(debug=True)
