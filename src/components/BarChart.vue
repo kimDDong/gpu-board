@@ -1,58 +1,50 @@
 <!-- src/components/BarChart.vue -->
 <template>
   <div>
-    <h4>{{ title }}</h4>
-    <canvas ref="canvas"></canvas>
+    <h4 v-if="title">{{ title }}</h4>
+    <Bar :data="chartData" :options="chartOptions" />
   </div>
 </template>
 
-<script>
-import { Bar, mixins } from 'vue-chartjs'
-const { reactiveProp } = mixins
+<script setup>
+import { Bar } from 'vue-chartjs'
+import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
+import { computed } from 'vue'
 
-export default {
-  name: 'BarChart',
-  extends: Bar,
-  mixins: [reactiveProp],
-  props: {
-    labels: { type: Array, required: true },
-    data: { type: Array, required: true },
-    title: { type: String, default: '' },
-    color: { type: String, default: '#1976d2' }
+Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend)
+
+const props = defineProps({
+  labels: { type: Array, required: true },
+  data: { type: Array, required: true },
+  title: { type: String, default: '' },
+  color: { type: String, default: '#1976d2' }
+})
+
+// Chart data (labels + dataset)
+const chartData = computed(() => ({
+  labels: props.labels,
+  datasets: [{
+    label: props.title,
+    backgroundColor: props.color,
+    data: props.data,
+    borderRadius: 6,
+    barPercentage: 0.7,
+  }]
+}))
+
+const chartOptions = {
+  responsive: true,
+  plugins: {
+    legend: { display: false },
+    tooltip: { enabled: true },
   },
-  computed: {
-    datacollection() {
-      return {
-        labels: this.labels,
-        datasets: [{
-          label: this.title,
-          backgroundColor: this.color,
-          data: this.data
-        }]
-      }
-    }
-  },
-  data() {
-    return {
-      chartOptions: {
-        responsive: true,
-        legend: { display: false },
-        scales: {
-          xAxes: [{ ticks: { fontColor: '#444' } }],
-          yAxes: [{ ticks: { beginAtZero: true, fontColor: '#444' } }]
-        }
-      }
-    }
-  },
-  mounted() {
-    this.renderChart(this.datacollection, this.chartOptions)
-  },
-  watch: {
-    datacollection: {
-      handler(val) {
-        this.renderChart(val, this.chartOptions)
-      },
-      deep: true
+  scales: {
+    x: {
+      ticks: { color: '#444' }
+    },
+    y: {
+      beginAtZero: true,
+      ticks: { color: '#444' }
     }
   }
 }
