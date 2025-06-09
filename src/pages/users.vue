@@ -1,57 +1,62 @@
 <template>
-  <v-row>
-    <!-- 사용자 목록 -->
-    <v-col cols="12">
-      <v-card>
-        <v-card-title>사용자 계정 관리</v-card-title>
-        <v-card-text>
-          <v-btn color="primary" @click="addUser">사용자 추가</v-btn>
-          <v-table>
-            <thead>
-              <tr>
-                <th>아이디</th>
-                <th>이름</th>
-                <th>역할</th>
-                <th>조치</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(user, index) in users" :key="index">
-                <td>{{ user.id }}</td>
-                <td>{{ user.name }}</td>
-                <td>{{ user.role }}</td>
-                <td>
-                  <v-btn size="small" @click="editUser(user)">수정</v-btn>
-                  <v-btn size="small" @click="deleteUser(user.id)">삭제</v-btn>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </v-card-text>
-      </v-card>
-    </v-col>
+  <v-container fluid>
+    <v-row justify="center">
+      <v-col cols="12" md="10" class="pa-6">
+        <div class="text-h6 font-weight-bold mb-2">사용자 관리</div>
+        <div class="text-body-2 mb-6">워크스페이스 내 사용자 목록을 조회하고 관리합니다</div>
 
-    <!-- 역할 및 권한 관리 -->
-    <v-col cols="12" md="6" class="mt-5">
-      <v-card>
-        <v-card-title>역할 및 권한 관리</v-card-title>
-        <v-card-text>
-          <v-select label="역할 선택" :items="roles" v-model="selectedRole" />
-          <v-checkbox
-            v-for="(perm, index) in permissions"
-            :key="index"
-            :label="perm.label"
-            v-model="perm.value"
-          />
-          <v-btn @click="savePermissions">저장</v-btn>
-        </v-card-text>
-      </v-card>
-    </v-col>
+        <!-- 검색/필터 -->
+        <v-row class="align-center mb-4" no-gutters>
+          <v-col cols="12" md="6" class="pr-2">
+            <v-text-field v-model="searchKeyword" placeholder="이름, 이메일 또는 ID 검색" dense hide-details prepend-inner-icon="mdi-magnify" />
+          </v-col>
+          <v-col cols="6" md="3" class="pr-2">
+            <v-select label="역할 필터" :items="['전체', ...roles]" v-model="roleFilter" dense hide-details />
+          </v-col>
+          <v-col cols="6" md="3">
+            <v-btn color="primary" @click="addUser" block>사용자 추가</v-btn>
+          </v-col>
+        </v-row>
 
-    <!-- 사용자 추가 다이얼로그 -->
+        <!-- 테이블 -->
+        <v-data-table :headers="headers" :items="filteredUsers" item-key="id" class="elevation-1" density="comfortable" :items-per-page-options="[4, 8, 12]" :items-per-page="4">
+          <template #item.actions="{ item }">
+            <v-btn icon @click="editUser(item)" size="x-small"><v-icon>mdi-pencil</v-icon></v-btn>
+            <v-btn icon @click="deleteUser(item.id)" size="x-small"><v-icon>mdi-delete</v-icon></v-btn>
+          </template>
+          <template #item.usageChart="{ item }">
+            <div class="chart-cell">
+              <div class="chart-wrapper">
+                <canvas :ref="el => renderGradientChart(el, item.usageTimestamps, item.cpuUsage)" />
+                <small>CPU</small>
+              </div>
+              <div class="chart-wrapper">
+                <canvas :ref="el => renderGradientChart(el, item.usageTimestamps, item.gpuUsage)" />
+                <small>GPU</small>
+              </div>
+              <div class="chart-wrapper">
+                <canvas :ref="el => renderGradientChart(el, item.usageTimestamps, item.memUsage)" />
+                <small>MEM</small>
+              </div>
+            </div>
+          </template>
+        </v-data-table>
+
+        <!-- 권한 관리 -->
+        <v-card class="mt-8" v-if="selectedRole">
+          <v-card-title>권한 관리 - {{ selectedRole }}</v-card-title>
+          <v-card-text>
+            <v-checkbox v-for="(perm, index) in permissions" :key="index" :label="perm.label" v-model="perm.value" />
+            <v-btn color="primary" @click="savePermissions">저장</v-btn>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- 사용자 추가 -->
     <v-dialog v-model="dialogAdd" max-width="500">
       <v-card>
-        <v-card-title>사용자 추가</v-card-title>
+        <v-card-title class="text-h6">사용자 추가</v-card-title>
         <v-card-text>
           <v-text-field label="아이디" v-model="newUser.id" />
           <v-text-field label="이름" v-model="newUser.name" />
@@ -64,106 +69,80 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-row>
 
-  <!-- 사용자 수정 다이얼로그 -->
-  <v-dialog v-model="dialogEdit" max-width="500">
-    <v-card>
-      <v-card-title>사용자 수정</v-card-title>
-      <v-card-text>
-        <v-text-field label="아이디" v-model="editUserData.id" disabled />
-        <v-text-field label="이름" v-model="editUserData.name" />
-        <v-select label="역할" :items="roles" v-model="editUserData.role" />
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn text @click="dialogEdit = false">취소</v-btn>
-        <v-btn color="primary" @click="confirmEditUser">저장</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-
-  <v-card-text>
-    <v-row class="mb-3" align="center">
-      <v-col cols="12" md="6">
-        <v-text-field
-          label="이름 또는 아이디 검색"
-          v-model="searchKeyword"
-          clearable
-        />
-      </v-col>
-      <v-col cols="12" md="4">
-        <v-select
-          label="역할 필터"
-          :items="['전체', ...roles]"
-          v-model="roleFilter"
-          clearable
-        />
-      </v-col>
-    </v-row>
-
-    <v-table>
-      <thead>
-        <tr>
-          <th>아이디</th>
-          <th>이름</th>
-          <th>역할</th>
-          <th>조치</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(user, index) in filteredUsers" :key="index">
-          <td>{{ user.id }}</td>
-          <td>{{ user.name }}</td>
-          <td>{{ user.role }}</td>
-          <td>
-            <v-btn size="small" @click="editUser(user)">수정</v-btn>
-            <v-btn size="small" @click="deleteUser(user.id)">삭제</v-btn>
-          </td>
-        </tr>
-      </tbody>
-    </v-table>
-  </v-card-text>
-
-
+    <!-- 사용자 수정 -->
+    <v-dialog v-model="dialogEdit" max-width="500">
+      <v-card>
+        <v-card-title class="text-h6">사용자 수정</v-card-title>
+        <v-card-text>
+          <v-text-field label="아이디" v-model="editUserData.id" disabled />
+          <v-text-field label="이름" v-model="editUserData.name" />
+          <v-select label="역할" :items="roles" v-model="editUserData.role" />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text @click="dialogEdit = false">취소</v-btn>
+          <v-btn color="primary" @click="confirmEditUser">저장</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
-
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import axios from 'axios'
+import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale } from 'chart.js'
 
-// 사용자 목록 상태
+Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale)
+
 const users = ref([])
-
-// 역할 목록
 const roles = ref(['관리자', '일반 사용자'])
-
-
-
 const searchKeyword = ref('')
 const roleFilter = ref('전체')
-
-const filteredUsers = computed(() => {
-  return users.value.filter(user => {
-    const matchKeyword =
-      user.id.includes(searchKeyword.value) ||
-      user.name.includes(searchKeyword.value)
-
-    const matchRole =
-      roleFilter.value === '전체' || roleFilter.value === '' || user.role === roleFilter.value
-
-    return matchKeyword && matchRole
-  })
-})
-
+const dialogAdd = ref(false)
 const dialogEdit = ref(false)
-const editUserData = ref({
-  id: '',
-  name: '',
-  role: ''
-})
+const selectedRole = ref('')
+const newUser = ref({ id: '', name: '', role: '' })
+const editUserData = ref({ id: '', name: '', role: '' })
+const permissions = ref([
+  { label: '자원 할당', value: false },
+  { label: '자원 회수', value: false },
+  { label: '사용자 계정 관리', value: false }
+])
+
+const headers = [
+  { title: '아이디', key: 'id' },
+  { title: '이름', key: 'name' },
+  { title: '역할', key: 'role' },
+  { title: '월간 사용 내역', key: 'usageChart', sortable: false },
+  { title: '조치', key: 'actions', sortable: false }
+]
+
+const filteredUsers = computed(() =>
+  users.value.filter(user =>
+    (user.id.includes(searchKeyword.value) || user.name.includes(searchKeyword.value)) &&
+    (roleFilter.value === '전체' || user.role === roleFilter.value)
+  )
+)
+
+const fetchUsers = async () => {
+  const res = await axios.get('http://localhost:5002/api/users')
+  users.value = res.data
+}
+
+const addUser = () => {
+  newUser.value = { id: '', name: '', role: '' }
+  dialogAdd.value = true
+}
+
+const confirmAddUser = async () => {
+  if (!newUser.value.id || !newUser.value.name || !newUser.value.role) return alert('모든 항목을 입력해주세요.')
+  if (users.value.some(u => u.id === newUser.value.id)) return alert('이미 존재하는 아이디입니다.')
+  const res = await axios.post('http://localhost:5002/api/users', newUser.value)
+  users.value.push(res.data.user)
+  dialogAdd.value = false
+}
 
 const editUser = (user) => {
   editUserData.value = { ...user }
@@ -171,133 +150,118 @@ const editUser = (user) => {
 }
 
 const confirmEditUser = async () => {
-  try {
-    const res = await axios.put(
-      `http://localhost:5002/api/users/${editUserData.value.id}`,
-      {
-        name: editUserData.value.name,
-        role: editUserData.value.role
-      }
-    )
-    // 수정된 사용자 정보로 반영
-    const idx = users.value.findIndex(u => u.id === editUserData.value.id)
-    if (idx !== -1) {
-      users.value[idx] = res.data.user
-    }
-    dialogEdit.value = false
-  } catch (error) {
-    console.error('수정 실패:', error)
-    alert('사용자 수정 중 오류 발생')
-  }
+  const res = await axios.put(`http://localhost:5002/api/users/${editUserData.value.id}`, {
+    name: editUserData.value.name,
+    role: editUserData.value.role
+  })
+  const idx = users.value.findIndex(u => u.id === editUserData.value.id)
+  if (idx !== -1) users.value[idx] = res.data.user
+  dialogEdit.value = false
 }
 
-
-const selectedRole = ref('')
-
-// 권한 목록
-const permissions = ref([
-  { label: '자원 할당', value: false },
-  { label: '자원 회수', value: false },
-  { label: '사용자 계정 관리', value: false }
-])
+const deleteUser = async (userId) => {
+  await axios.delete(`http://localhost:5002/api/users/${userId}`)
+  users.value = users.value.filter(u => u.id !== userId)
+}
 
 watch(selectedRole, async (newRole) => {
   if (!newRole) return
-
-  try {
-    const res = await axios.get(`http://localhost:5000/api/roles/${newRole}`)
-    const savedPerms = res.data.permissions || []
-
-    // 전체 권한 체크박스 상태 초기화 후 반영
-    permissions.value.forEach(p => {
-      p.value = savedPerms.includes(p.label)
-    })
-  } catch (err) {
-    console.error('권한 불러오기 실패:', err)
-  }
+  const res = await axios.get(`http://localhost:5002/api/roles/${newRole}`)
+  const savedPerms = res.data.permissions || []
+  permissions.value.forEach(p => p.value = savedPerms.includes(p.label))
 })
 
-
-// 사용자 추가용 상태
-const dialogAdd = ref(false)
-const newUser = ref({
-  id: '',
-  name: '',
-  role: ''
-})
-
-// API로 사용자 목록 불러오기
-const fetchUsers = async () => {
-  try {
-    const res = await axios.get('http://localhost:5002/api/users')
-    users.value = res.data
-  } catch (err) {
-    console.error('사용자 데이터를 불러오지 못했습니다.', err)
-  }
-}
-
-// 사용자 추가 버튼 클릭 시
-const addUser = () => {
-  newUser.value = { id: '', name: '', role: '' }
-  dialogAdd.value = true
-}
-
-// 사용자 실제 추가
-const confirmAddUser = async () => {
-  if (!newUser.value.id || !newUser.value.name || !newUser.value.role) {
-    alert('모든 항목을 입력해주세요.')
-    return
-  }
-
-  try {
-    // 서버에 POST 요청 보내기
-    const res = await axios.post('http://localhost:5002/api/users', newUser.value)
-    users.value.push(res.data.user)  // 응답 데이터 기반으로 테이블 갱신
-    dialogAdd.value = false
-  } catch (error) {
-    console.error('사용자 추가 실패:', error)
-    alert('사용자 추가 중 오류 발생')
-  }
-}
-
-
-// 사용자 삭제
-const deleteUser = async (userId) => {
-  try {
-    await axios.delete(`http://localhost:5002/api/users/${userId}`)
-    users.value = users.value.filter(u => u.id !== userId)
-  } catch (error) {
-    console.error('사용자 삭제 실패:', error)
-    alert('사용자 삭제 중 오류 발생')
-  }
-}
-// 권한 저장
 const savePermissions = async () => {
-  if (!selectedRole.value) {
-    alert('역할을 먼저 선택하세요.')
-    return
-  }
-
-  const selectedPerms = permissions.value
-    .filter(p => p.value)
-    .map(p => p.label)
-
-  try {
-    await axios.post('http://localhost:5002/api/roles', {
-      role: selectedRole.value,
-      permissions: selectedPerms
-    })
-    alert(`${selectedRole.value} 권한이 저장되었습니다.`)
-  } catch (error) {
-    console.error('권한 저장 실패:', error)
-    alert('권한 저장 중 오류 발생')
-  }
+  if (!selectedRole.value) return alert('역할을 선택하세요.')
+  const selectedPerms = permissions.value.filter(p => p.value).map(p => p.label)
+  await axios.post('http://localhost:5002/api/roles', {
+    role: selectedRole.value,
+    permissions: selectedPerms
+  })
+  alert('권한 저장 완료')
 }
 
+const chartInstances = new WeakMap()
 
+const renderGradientChart = async (canvas, labels, values) => {
+  await nextTick()
+  if (!canvas || !values) return
 
-// 초기 실행
-onMounted(() => {
-  fetchUsers()
-})
+  const ctx = canvas.getContext('2d')
+
+  if (chartInstances.has(canvas)) {
+    chartInstances.get(canvas).destroy()
+  }
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '사용률',
+          data: values,
+          borderWidth: 2,
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0,
+          borderColor: (ctx) => {
+            const chart = ctx.chart
+            const { ctx: context, chartArea } = chart
+            if (!chartArea) return '#ccc'
+            const gradient = context.createLinearGradient(0, chartArea.bottom, 0, chartArea.top)
+            gradient.addColorStop(0, '#12c2e9')
+            gradient.addColorStop(0.5, '#f9d423')
+            gradient.addColorStop(1, '#ff0033')
+            return gradient
+          }
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: {
+        x: {
+          display: true,
+          ticks: { color: '#888', font: { size: 10 } },
+          grid: { display: false }
+        },
+        y: { display: false }
+      }
+    }
+  })
+
+  chartInstances.set(canvas, chart)
+}
+
+onMounted(fetchUsers)
 </script>
+
+<style scoped>
+.chart-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-wrapper {
+  height: 75px;
+  position: relative;
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+.chart-wrapper small {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  font-size: 10px;
+  color: #aaa;
+}
+</style>
