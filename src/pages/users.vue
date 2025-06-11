@@ -19,11 +19,57 @@
         </v-row>
 
         <!-- 테이블 -->
-        <v-data-table :headers="headers" :items="filteredUsers" item-key="id" class="elevation-1" density="comfortable" :items-per-page-options="[4, 8, 12]" :items-per-page="4">
-          <template #item.actions="{ item }">
-            <v-btn icon @click="editUser(item)" size="x-small"><v-icon>mdi-pencil</v-icon></v-btn>
-            <v-btn icon @click="deleteUser(item.id)" size="x-small"><v-icon>mdi-delete</v-icon></v-btn>
-          </template>
+        <v-checkbox
+          v-model="hideExpired"
+          label="만료 사용자 숨기기"
+          density="compact"
+          class="mb-2"
+        />
+            <v-data-table
+              :headers="headers"
+              :items="filteredUsers"
+              item-key="id"
+              class="elevation-1"
+              density="comfortable"
+              :items-per-page-options="[10, 20, 30]"
+              :items-per-page="10"
+              :item-class="item => !item.active ? 'inactive-orange-text' : ''"
+            >
+
+            <template #item.actions="{ item }">
+              <v-btn icon @click="editUser(item)" size="x-small">
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+              <v-btn icon @click="deleteUser(item.id)" size="x-small">
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+              <v-btn
+                size="x-small"
+                @click="toggleUserActivation(item)"
+                class="activation-btn"
+                variant="outlined"
+              >
+                {{ item.active ? '비활성화' : '활성화' }}
+              </v-btn>
+               <!-- ✅ 비활성화 상태인 경우에만 아이콘 + 배지 표시 -->
+  <span v-if="!item.active" class="ml-2 d-inline-flex align-center">
+    <v-icon size="14" color="orange" class="mr-1">mdi-alert-circle</v-icon>
+    <v-chip label small color="orange" text-color="white" variant="flat">
+      비활성화됨
+    </v-chip>
+  </span>
+  <v-btn icon @click="openReport(item)" size="x-small">
+  <v-icon>mdi-file-document</v-icon>
+</v-btn>
+
+            </template>
+          <template #item.daysLeft="{ item }">
+          <span :style="{ color: item.daysLeft < 0 ? 'red' : undefined }">
+            {{ item.daysLeft }}일
+          </span>
+        </template>
+
+          <!--
           <template #item.usageChart="{ item }">
             <div class="chart-cell">
               <div class="chart-wrapper">
@@ -40,6 +86,7 @@
               </div>
             </div>
           </template>
+          -->
         </v-data-table>
 
         <!-- 권한 관리 -->
@@ -58,10 +105,16 @@
       <v-card>
         <v-card-title class="text-h6">사용자 추가</v-card-title>
         <v-card-text>
-          <v-text-field label="아이디" v-model="newUser.id" />
-          <v-text-field label="이름" v-model="newUser.name" />
-          <v-select label="역할" :items="roles" v-model="newUser.role" />
-        </v-card-text>
+  <v-text-field label="아이디" v-model="newUser.id" />
+  <v-text-field label="이름" v-model="newUser.name" />
+  <v-select label="역할" :items="roles" v-model="newUser.role" />
+  <v-text-field
+    label="사용 기한"
+    v-model="newUser.expiry"
+    type="date"
+  />
+</v-card-text>
+
         <v-card-actions>
           <v-spacer />
           <v-btn text @click="dialogAdd = false">취소</v-btn>
@@ -75,10 +128,15 @@
       <v-card>
         <v-card-title class="text-h6">사용자 수정</v-card-title>
         <v-card-text>
-          <v-text-field label="아이디" v-model="editUserData.id" disabled />
-          <v-text-field label="이름" v-model="editUserData.name" />
-          <v-select label="역할" :items="roles" v-model="editUserData.role" />
-        </v-card-text>
+  <v-text-field label="아이디" v-model="editUserData.id" disabled />
+  <v-text-field label="이름" v-model="editUserData.name" />
+  <v-select label="역할" :items="roles" v-model="editUserData.role" />
+  <v-text-field
+    label="사용 기한"
+    v-model="editUserData.expiry"
+    type="date"
+  />
+</v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn text @click="dialogEdit = false">취소</v-btn>
@@ -86,6 +144,10 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <UserReportDialog
+      v-model:visible="reportDialogVisible"
+      :user="selectedUserForReport"
+    />
   </v-container>
 </template>
 
@@ -93,8 +155,12 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import axios from 'axios'
 import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale } from 'chart.js'
+import UserReportDialog from '@/components/user/UserReportDialog.vue'  // 경로 확인
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale)
+
+const reportDialogVisible = ref(false)
+const selectedUserForReport = ref(null)
 
 const users = ref([])
 const roles = ref(['관리자', '일반 사용자'])
@@ -103,8 +169,8 @@ const roleFilter = ref('전체')
 const dialogAdd = ref(false)
 const dialogEdit = ref(false)
 const selectedRole = ref('')
-const newUser = ref({ id: '', name: '', role: '' })
-const editUserData = ref({ id: '', name: '', role: '' })
+const newUser = ref({ id: '', name: '', role: '', expiry: '' })
+const editUserData = ref({ id: '', name: '', role: '', expiry: '' })
 const permissions = ref([
   { label: '자원 할당', value: false },
   { label: '자원 회수', value: false },
@@ -115,16 +181,53 @@ const headers = [
   { title: '아이디', key: 'id' },
   { title: '이름', key: 'name' },
   { title: '역할', key: 'role' },
-  { title: '월간 사용 내역', key: 'usageChart', sortable: false },
-  { title: '조치', key: 'actions', sortable: false }
+  { title: '사용 기한', key: 'expiry' },
+  { title: '남은 일수', key: 'daysLeft' },
+  { title: '조치', key: 'actions', sortable: false, width: '300px' } // ✅ 여유 있게 고정
 ]
 
+
+const hideExpired = ref(false)
+
+
+
 const filteredUsers = computed(() =>
-  users.value.filter(user =>
-    (user.id.includes(searchKeyword.value) || user.name.includes(searchKeyword.value)) &&
-    (roleFilter.value === '전체' || user.role === roleFilter.value)
-  )
+  users.value
+    .map(user => {
+      const today = new Date()
+      const expiry = new Date(user.expiry)
+      const msPerDay = 1000 * 60 * 60 * 24
+      const daysLeft = Math.floor((expiry - today) / msPerDay)
+
+      return {
+        ...user,
+        daysLeft
+      }
+    })
+    .filter(user =>
+      (user.id.includes(searchKeyword.value) || user.name.includes(searchKeyword.value)) &&
+      (roleFilter.value === '전체' || user.role === roleFilter.value) &&
+      (!hideExpired.value || user.daysLeft >= 0)
+    )
 )
+
+const toggleUserActivation = async (user) => {
+  const action = user.active ? 'deactivate' : 'activate'
+  const confirmed = confirm(`정말로 ${user.name} 계정을 ${user.active ? '비활성화' : '활성화'}하시겠습니까?`)
+  if (!confirmed) return
+
+  const res = await axios.post(`http://localhost:5002/api/users/${user.id}/${action}`)
+  const idx = users.value.findIndex(u => u.id === user.id)
+  if (idx !== -1) users.value[idx] = res.data.user
+}
+
+
+const openReport = (user) => {
+  console.log('레포트 열기 클릭됨:', user)
+  selectedUserForReport.value = user
+  reportDialogVisible.value = true
+}
+
 
 const fetchUsers = async () => {
   const res = await axios.get('http://localhost:5002/api/users')
@@ -152,7 +255,8 @@ const editUser = (user) => {
 const confirmEditUser = async () => {
   const res = await axios.put(`http://localhost:5002/api/users/${editUserData.value.id}`, {
     name: editUserData.value.name,
-    role: editUserData.value.role
+    role: editUserData.value.role,
+    expiry: editUserData.value.expiry
   })
   const idx = users.value.findIndex(u => u.id === editUserData.value.id)
   if (idx !== -1) users.value[idx] = res.data.user
@@ -181,8 +285,9 @@ const savePermissions = async () => {
   alert('권한 저장 완료')
 }
 
-const chartInstances = new WeakMap()
 
+// const chartInstances = new WeakMap()
+/*
 const renderGradientChart = async (canvas, labels, values) => {
   await nextTick()
   if (!canvas || !values) return
@@ -235,7 +340,7 @@ const renderGradientChart = async (canvas, labels, values) => {
   })
 
   chartInstances.set(canvas, chart)
-}
+}*/
 
 onMounted(fetchUsers)
 </script>
@@ -263,5 +368,16 @@ onMounted(fetchUsers)
   left: 4px;
   font-size: 10px;
   color: #aaa;
+}
+.activation-btn {
+  min-width: 64px;
+  padding: 0 8px;
+  font-size: 10px;
+  text-transform: none;
+  height: 28px;
+}
+.inactive-orange-text td {
+  color: #FFA500 !important; /* 주황색 글씨 */
+  font-weight: 500;
 }
 </style>

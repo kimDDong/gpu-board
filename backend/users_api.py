@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import random
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 CORS(app)
@@ -18,10 +19,13 @@ roles = ['관리자', '일반 사용자']
 
 # 초기 사용자 생성
 for i in range(15):
+    expiry_date = datetime.now() + timedelta(days=random.randint(30, 180))
     users.append({
         "id": f"user{i + 1}",
         "name": names[i],
         "role": roles[i % 2],
+        "expiry": expiry_date.strftime('%Y-%m-%d'),
+        "active": True,
         "cpuUsage": [random.randint(10, 90) for _ in range(31)],
         "gpuUsage": [random.randint(10, 90) for _ in range(31)],
         "memUsage": [random.randint(10, 90) for _ in range(31)],
@@ -44,6 +48,8 @@ def add_user():
         "id": data["id"],
         "name": data["name"],
         "role": data["role"],
+        "expiry": data.get("expiry", ""),
+        "active": True,
         "cpuUsage": [random.randint(10, 90) for _ in range(31)],
         "gpuUsage": [random.randint(10, 90) for _ in range(31)],
         "memUsage": [random.randint(10, 90) for _ in range(31)],
@@ -67,7 +73,8 @@ def update_user(user_id):
         if user["id"] == user_id:
             user.update({
                 "name": data.get("name", user["name"]),
-                "role": data.get("role", user["role"])
+                "role": data.get("role", user["role"]),
+                "expiry": data.get("expiry", user.get("expiry", ""))
             })
             return jsonify({"user": user})
     return jsonify({"message": "사용자 없음"}), 404
@@ -86,6 +93,23 @@ def get_permissions(role):
         "role": role,
         "permissions": role_permissions.get(role, [])
     })
+
+@app.route('/api/users/<user_id>/deactivate', methods=['POST'])
+def deactivate_user(user_id):
+    for user in users:
+        if user["id"] == user_id:
+            user["active"] = False
+            return jsonify({"user": user})
+    return jsonify({"message": "사용자 없음"}), 404
+
+@app.route('/api/users/<user_id>/activate', methods=['POST'])
+def activate_user(user_id):
+    for user in users:
+        if user["id"] == user_id:
+            user["active"] = True
+            return jsonify({"user": user})
+    return jsonify({"message": "사용자 없음"}), 404
+
 
 if __name__ == '__main__':
     app.run(port=5002)
