@@ -10,7 +10,7 @@
         </v-btn>
         <v-select
           v-model="resourceTypeFilter"
-          :items="['ALL', 'GPU', 'CPU']"
+          :items="['ALL', 'GPU', 'CPU', 'Memory']"
           label="자원 종류 필터"
           dense
           class="mb-3"
@@ -37,19 +37,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="r in userResources(user)"
-                    :key="r.type + '_' + r.res_id"
-                  >
+                  <tr v-for="r in userResources(user)" :key="r.type + '_' + r.res_id">
                     <td>{{ r.type }}</td>
                     <td>{{ r.res_id }}</td>
                     <td>{{ r.start_date }} ~ {{ r.end_date }}</td>
                     <td>
-                      <v-btn
-                        size="small"
-                        color="error"
-                        @click="reclaimResource(r)"
-                        >회수</v-btn>
+                      <v-btn size="small" color="error" @click="reclaimResource(r)">회수</v-btn>
                     </td>
                   </tr>
                 </tbody>
@@ -62,7 +55,7 @@
         </v-card>
       </v-col>
     </v-row>
-    <!-- 자원 할당 다이얼로그 (여러 개 동시) -->
+    <!-- 자원 할당 다이얼로그 -->
     <v-dialog v-model="assignDialog" max-width="520">
       <v-card>
         <v-card-title>자원 할당</v-card-title>
@@ -77,11 +70,10 @@
           />
           <v-select
             label="자원 종류"
-            :items="['GPU','CPU']"
+            :items="['GPU','CPU','Memory']"
             v-model="assignResourceType"
             dense
           />
-          <!-- 문제의 부분: 꼭 아래처럼! -->
           <v-select
             label="자원 선택(복수)"
             v-model="selectedResourceKeys"
@@ -92,48 +84,17 @@
             :rules="[v => v && v.length > 0 || '최소 1개 선택']"
             dense
           />
-
-          <v-menu
-            v-model="menu1"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            offset-y
-          >
+          <v-menu v-model="menu1" :close-on-content-click="false" transition="scale-transition" offset-y>
             <template #activator="{ props }">
-              <v-text-field
-                label="시작일"
-                v-model="startStr"
-                readonly
-                v-bind="props"
-                dense
-              />
+              <v-text-field label="시작일" v-model="startStr" readonly v-bind="props" dense />
             </template>
-            <v-date-picker
-              v-model="startObj"
-              @update:model-value="onPickStart"
-              color="primary"
-            />
+            <v-date-picker v-model="startObj" @update:model-value="onPickStart" color="primary" />
           </v-menu>
-          <v-menu
-            v-model="menu2"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            offset-y
-          >
+          <v-menu v-model="menu2" :close-on-content-click="false" transition="scale-transition" offset-y>
             <template #activator="{ props }">
-              <v-text-field
-                label="만료일"
-                v-model="endStr"
-                readonly
-                v-bind="props"
-                dense
-              />
+              <v-text-field label="만료일" v-model="endStr" readonly v-bind="props" dense />
             </template>
-            <v-date-picker
-              v-model="endObj"
-              @update:model-value="onPickEnd"
-              color="primary"
-            />
+            <v-date-picker v-model="endObj" @update:model-value="onPickEnd" color="primary" />
           </v-menu>
         </v-card-text>
         <v-card-actions>
@@ -143,7 +104,7 @@
       </v-card>
     </v-dialog>
     <!-- 보고서 모달 -->
-    <ReportDialog v-model="showReport"/>
+    <ReportDialog v-model="showReport" />
   </v-container>
 </template>
 
@@ -152,26 +113,20 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import ReportDialog from '@/components/ReportDialog.vue'
 
-// 데이터 상태
 const users = ref([])
 const resources = ref([])
-
-// 자원종류(GPU/CPU/ALL) 필터
 const resourceTypeFilter = ref('ALL')
 
-// 사용자별 자원 필터
 function userResources(user) {
-  let list = resources.value.filter(r => r.user === user)
-  if (resourceTypeFilter.value !== 'ALL') {
-    list = list.filter(r => r.type === resourceTypeFilter.value)
-  }
-  return list
+  return Array.isArray(resources.value)
+    ? resources.value.filter(r => r.user === user && (resourceTypeFilter.value === 'ALL' || r.type === resourceTypeFilter.value))
+    : []
 }
 
-// --- 다중 자원 할당 팝업 ---
+// 다이얼로그 상태
 const assignDialog = ref(false)
 const assignUser = ref('')
-const assignResourceType = ref('GPU') // 기본값 GPU
+const assignResourceType = ref('GPU')
 const selectedResourceKeys = ref([])
 const startObj = ref(null)
 const endObj = ref(null)
@@ -180,23 +135,20 @@ const endStr = ref('')
 const menu1 = ref(false)
 const menu2 = ref(false)
 
-// 할당 안된 자원만 리스트 (label만 나오게!!)
 const availableResources = computed(() =>
-  resources.value
-    .filter(r => !r.user)
-    .map(r => ({
-      key: r.type + '-' + r.res_id,
-      label: `${r.type} ${r.res_id}`,
-      res_id: r.res_id,
-      type: r.type
-    }))
+  Array.isArray(resources.value)
+    ? resources.value.filter(r => !r.user).map(r => ({
+        key: `${r.type}-${r.res_id}`,
+        label: `${r.type} ${r.res_id}`,
+        res_id: r.res_id,
+        type: r.type
+      }))
+    : []
 )
-// 필터된 할당 가능 자원 (팝업)
 const filteredAvailableResources = computed(() =>
   availableResources.value.filter(r => r.type === assignResourceType.value)
 )
 
-// 날짜 선택
 function onPickStart(v) {
   startObj.value = v
   startStr.value = v ? `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
@@ -217,7 +169,6 @@ function closeAssignDialog() {
   startStr.value = ''
   endStr.value = ''
 }
-
 async function confirmAssign() {
   if (!assignUser.value || !selectedResourceKeys.value.length || !startStr.value || !endStr.value) {
     alert('모든 값을 입력하세요'); return
@@ -225,7 +176,7 @@ async function confirmAssign() {
   for (const key of selectedResourceKeys.value) {
     const res = availableResources.value.find(r => r.key === key)
     if (!res) continue
-    await axios.post('http://127.0.0.1:5000/api/allocations', {
+    await axios.post('/api/allocations', {
       res_id: res.res_id,
       type: res.type,
       user: assignUser.value,
@@ -236,23 +187,24 @@ async function confirmAssign() {
   await fetchData()
   closeAssignDialog()
 }
-
-// 자원목록+유저 불러오기
 async function fetchData() {
-  resources.value = (await axios.get('http://127.0.0.1:5000/api/resources')).data
-  users.value = (await axios.get('http://127.0.0.1:5000/api/users')).data
+  try {
+    const res = await axios.get('/api/resources')
+    resources.value = Array.isArray(res.data) ? res.data : []
+    const usr = await axios.get('/api/users')
+    users.value = Array.isArray(usr.data) ? usr.data : []
+  } catch (e) {
+    resources.value = []
+    users.value = []
+  }
 }
-fetchData()
-
-// 회수
 async function reclaimResource(r) {
-  await axios.post('http://127.0.0.1:5000/api/allocations/reclaim', {
+  await axios.post('/api/allocations/reclaim', {
     res_id: r.res_id,
     type: r.type
   })
   await fetchData()
 }
-
-// 보고서 모달
 const showReport = ref(false)
+fetchData()
 </script>
