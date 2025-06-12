@@ -183,7 +183,7 @@ const headers = [
   { title: '역할', key: 'role' },
   { title: '사용 기한', key: 'expiry' },
   { title: '남은 일수', key: 'daysLeft' },
-  { title: '조치', key: 'actions', sortable: false, width: '300px' } // ✅ 여유 있게 고정
+  { title: '조치', key: 'actions', sortable: false, width: '400px' } // ✅ 여유  고정
 ]
 
 
