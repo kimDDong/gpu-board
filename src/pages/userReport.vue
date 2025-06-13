@@ -41,9 +41,6 @@
     <v-card class="pa-4 mb-4" elevation="2">
       <div class="text-subtitle-2 mb-2">
         사용률 추세 비교
-        <span v-if="dateRange.start && dateRange.end">
-          ({{ dateRange.start }} ~ {{ dateRange.end }})
-        </span>
       </div>
       <v-row>
         <v-col cols="12" md="4">
@@ -127,6 +124,10 @@ const dateRange = ref({ start: '', end: '' })
 const avg = arr => (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1)
 const max = arr => Math.max(...arr)
 const min = arr => Math.min(...arr)
+function average(arr, startIdx = 0, endIdx = arr.length) {
+  const slice = arr.slice(startIdx, endIdx);
+  return slice.length ? Math.round(slice.reduce((a, b) => a + b, 0) / slice.length) : 0;
+}
 
 const filteredUsage = (usage, timestamps) => {
   if (!dateRange.value.start || !dateRange.value.end) return [timestamps, usage]
@@ -191,11 +192,12 @@ const trendLabel = computed(() => {
   if (dateRange.value.start && dateRange.value.end) {
     const start = new Date(dateRange.value.start)
     const end = new Date(dateRange.value.end)
-    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1
+    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1  // 양 끝 포함
     return `${dateRange.value.start} ~ ${dateRange.value.end} (${days}일)`
   }
   return '최근 7일'
 })
+
 
 // === Chart Rendering ===
 const renderGradientChart = async (canvas, labels, values) => {

@@ -220,7 +220,7 @@ const toggleUserActivation = async (user) => {
 const router = useRouter()
 
 const openReport = (user) => {
-  router.push({ path: '/report', query: { id: user.id } })
+  router.push({ path: '/userReport', query: { id: user.id } })
 }
 
 
