@@ -37,7 +37,7 @@ async function fetch() {
     const res = await axios.get(API_URL)
     cpu.value = res.data.value
   } catch (e) {
-    cpu.value = []
+    cpu.value = null
   }
 }
 

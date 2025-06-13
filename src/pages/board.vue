@@ -9,10 +9,10 @@ import CPU_CHART from '@/components/dashboard/CPU_CHART.vue'
 import GPU_BARS from '@/components/dashboard/GPU_BARS.vue'
 import GPU_CHART from '@/components/dashboard/GPU_CHART.vue'
 import GPU_TEMP from '@/components/dashboard/GPU_TEMP.vue'
-import USER_CPU from '@/components/dashboard/USER_CPU.vue'
-import USER_GPU from '@/components/dashboard/USER_GPU.vue'
-import USER_MEM from '@/components/dashboard/USER_MEM.vue'
-import USER_IDLE from '@/components/dashboard/USER_IDLE.vue'
+import USER_CPU from '@/components/dashboard/CPU_RANK.vue'
+import USER_GPU from '@/components/dashboard/GPU_RANK.vue'
+import USER_MEM from '@/components/dashboard/MEM_RANK.vue'
+import USER_IDLE from '@/components/dashboard/IDLE_RANK.vue'
 
 </script>
 

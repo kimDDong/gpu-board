@@ -23,9 +23,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
+const API_INTERVAL = 1000
 const API_URL_CPU_COUNT = 'http://localhost:8000/api/cpu/count'
 const API_URL_GPU_COUNT = 'http://localhost:8000/api/gpu/count'
 const API_URL_MEM_TOTAL = 'http://localhost:8000/api/mem/total'
@@ -35,6 +36,7 @@ const cpucnt = ref(null)
 const gpucnt = ref(null)
 const totalmem = ref(null)
 const uptime = ref(null)
+let timer = null
 
 // 각각 fetch 함수
 async function fetchValue(endpoint, stateRef) {
@@ -46,15 +48,24 @@ async function fetchValue(endpoint, stateRef) {
   }
 }
 
-const fetch = () => {
+const fetchHWInfo = () => {
   fetchValue(API_URL_CPU_COUNT, cpucnt)
   fetchValue(API_URL_GPU_COUNT, gpucnt)
   fetchValue(API_URL_MEM_TOTAL, totalmem)
+}
+
+async function fetchUptime() {
   fetchValue(API_URL_UPTIME, uptime)
 }
 
 onMounted(() => {
-  fetch()
+  fetchHWInfo()
+  fetchUptime()
+  timer = setInterval(fetchUptime, API_INTERVAL)
+})
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
 })
 </script>
 

@@ -38,7 +38,7 @@ async function fetch() {
     const res = await axios.get(API_URL)
     gpu.value = res.data.value
   } catch (e) {
-    gpu.value = []
+    gpu.value = null
   }
 }
 

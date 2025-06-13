@@ -37,7 +37,7 @@ async function fetch() {
     const res = await axios.get(API_URL)
     mem.value = res.data.value
   } catch (e) {
-    mem.value = []
+    mem.value = null
   }
 }
 
