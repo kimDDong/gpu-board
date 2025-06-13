@@ -23,9 +23,9 @@ declare module 'vue' {
     ResourceTable: typeof import('./src/components/resources/ResourceTable.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    USER_CPU: typeof import('./src/components/dashboard/USER_CPU.vue')['default']
-    USER_GPU: typeof import('./src/components/dashboard/USER_GPU.vue')['default']
-    USER_IDLE: typeof import('./src/components/dashboard/USER_IDLE.vue')['default']
-    USER_MEM: typeof import('./src/components/dashboard/USER_MEM.vue')['default']
+    USER_CPU: typeof import('./src/components/dashboard/CPU_RANK.vue')['default']
+    USER_GPU: typeof import('./src/components/dashboard/GPU_RANK.vue')['default']
+    USER_IDLE: typeof import('./src/components/dashboard/IDLE_RANK.vue')['default']
+    USER_MEM: typeof import('./src/components/dashboard/MEM_RANK.vue')['default']
   }
 }
