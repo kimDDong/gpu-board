@@ -6,234 +6,34 @@
         <v-spacer/>
       </v-card-title>
       <v-card-text>
-        <!-- sysinfo -->
-        <v-row class="mb-6">
-          <v-col cols="12" md="3">
-            <v-card color="deep-purple lighten-2" class="pa-4 text-white" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-1">
-                <v-icon size="32">mdi-account-multiple</v-icon>
-                <span class="text-h6 ml-2">총 유저</span>
-              </div>
-              <div class="d-flex align-center">
-                <div class="text-h3 font-weight-bold">{{ sysinfo.user_count }}</div>
-                <div class="ml-4 d-flex align-center" style="gap:0.4em">
-                  <span>
-                    <v-icon color="green" size="16" v-if="sysinfo.user_active > 0">mdi-circle</v-icon>
-                    <span class="text-caption">{{ sysinfo.user_active }}</span>
-                  </span>
-                  <span>
-                    <v-icon color="red" size="16" v-if="sysinfo.user_inactive > 0">mdi-circle</v-icon>
-                    <span class="text-caption">{{ sysinfo.user_inactive }}</span>
-                  </span>
-                </div>
-              </div>
-              <div class="text-caption mt-1">
-                활동중 <span class="font-weight-bold" style="color:#b9f6ca">{{ sysinfo.user_active }}</span>,
-                오프라인 <span class="font-weight-bold" style="color:#ff8a80">{{ sysinfo.user_inactive }}</span>
-              </div>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-card color="indigo darken-1" class="pa-4 text-white" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-1">
-                <v-icon size="32">mdi-nvidia</v-icon>
-                <span class="text-h6 ml-2">GPU</span>
-              </div>
-              <div class="text-h3 font-weight-bold">{{ sysinfo.gpu_count }}</div>
-              <div class="text-caption mt-1">모델: {{ sysinfo.gpu_models?.join(', ') }}</div>
-              <div class="text-caption">사용중: {{ sysinfo.gpu_used }}/{{ sysinfo.gpu_count }}</div>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-card color="cyan darken-2" class="pa-4 text-white" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-1">
-                <v-icon size="32">mdi-chip</v-icon>
-                <span class="text-h6 ml-2">CPU</span>
-              </div>
-              <div class="text-h3 font-weight-bold">{{ sysinfo.cpu_count }}</div>
-              <div class="text-caption mt-1">모델: {{ sysinfo.cpu_models?.join(', ') }}</div>
-              <div class="text-caption">사용중: {{ sysinfo.cpu_used }}/{{ sysinfo.cpu_count }}</div>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-card color="green darken-1" class="pa-4 text-white" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-1">
-                <v-icon size="32">mdi-memory</v-icon>
-                <span class="text-h6 ml-2">메모리</span>
-              </div>
-              <div class="text-h3 font-weight-bold">{{ sysinfo.memory_total_tb }}TB</div>
-              <div class="text-caption mt-1">슬롯: {{ sysinfo.memory_count }}개</div>
-              <div class="text-caption">사용중: {{ sysinfo.memory_used }}/{{ sysinfo.memory_count }}</div>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- 전체 사용량 라인차트 (CPU/Memory 위, GPU 크게) -->
-        <v-row class="mb-4">
-          <v-col cols="12" md="6">
-            <v-card class="pa-4 mb-2" style="border:1.5px solid #e0e0e0;">
-              <div style="min-height:170px;">
-                <LineChart v-if="usageLoaded"
-                  :chart-data="cpuUsageChartData"
-                  :options="cpuLineOptions"
-                  title="CPU 전체 사용량" />
-                <div v-else>Loading...</div>
-              </div>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-card class="pa-4 mb-2" style="border:1.5px solid #e0e0e0;">
-              <div style="min-height:170px;">
-                <LineChart v-if="usageLoaded"
-                  :chart-data="memoryUsageChartData"
-                  :options="memoryLineOptions"
-                  title="Memory 전체 사용량" />
-                <div v-else>Loading...</div>
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-        <v-row class="mb-6">
-          <v-col cols="12">
-            <v-card class="pa-4" style="border:2.5px solid #8e24aa;">
-              <div style="min-height:230px;">
-                <LineChart v-if="usageLoaded"
-                  :chart-data="gpuUsageChartData"
-                  :options="gpuLineOptions"
-                  title="GPU 전체 사용량 (크게 표시)" />
-                <div v-else>Loading...</div>
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- GPU 온도 여러개 토글 -->
-        <v-row>
-          <v-col cols="12">
-            <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-2">
-                <div class="text-h6">GPU 개별 온도(°C)</div>
-                <v-select
-                  :items="gpuNames"
-                  v-model="selectedGpuTemps"
-                  label="GPU 선택"
-                  multiple
-                  dense
-                  class="ml-4"
-                  style="max-width:350px"
-                  chips
-                />
-              </div>
-              <div style="min-height:170px;">
-                <LineChart
-                  v-if="gpuTempsChartData"
-                  :chart-data="gpuTempsChartData"
-                  :options="gpuTempLineOptions"
-                  title="GPU 온도"
-                />
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- GPU 개별 사용량(1줄), CPU/Memory는 2col -->
-        <v-row>
-          <v-col cols="12">
-            <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-2">
-                <div class="text-h6">GPU 개별 사용량</div>
-                <v-select :items="gpuNames" v-model="selectedGpu" label="GPU 선택" dense class="ml-4" style="max-width:150px" />
-              </div>
-              <div style="min-height:170px;">
-                <LineChart v-if="gpuDetailChartData" :chart-data="gpuDetailChartData" :options="gpuLineOptions" title="GPU 개별 사용량" />
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-2">
-                <div class="text-h6">CPU 개별 사용량</div>
-                <v-select :items="cpuNames" v-model="selectedCpu" label="CPU 선택" dense class="ml-4" style="max-width:150px" />
-              </div>
-              <div style="min-height:170px;">
-                <LineChart v-if="cpuDetailChartData" :chart-data="cpuDetailChartData" :options="cpuLineOptions" title="CPU 개별 사용량" />
-              </div>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
-              <div class="d-flex align-center mb-2">
-                <div class="text-h6">Memory 개별 사용량</div>
-                <v-select :items="memoryNames" v-model="selectedMemory" label="Memory 선택" dense class="ml-4" style="max-width:150px" />
-              </div>
-              <div style="min-height:170px;">
-                <LineChart v-if="memoryDetailChartData" :chart-data="memoryDetailChartData" :options="memoryLineOptions" title="Memory 개별 사용률(%)" />
-              </div>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- TOP5 랭크 -->
-        <v-row class="mt-6">
-          <v-col cols="12" md="6">
-            <v-card class="pa-3" style="border:1.5px solid #e0e0e0;">
-              <div class="text-h6 mb-2">TOP5 누적 사용량 랭크</div>
-              <v-table>
-                <thead>
-                  <tr>
-                    <th>순위</th>
-                    <th>이름</th>
-                    <th>GPU</th>
-                    <th>CPU</th>
-                    <th>Memory</th>
-                    <th>총합</th>
-                    <th>리포트</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(u, i) in userRank.usage" :key="u.name">
-                    <td>{{ i+1 }}</td>
-                    <td>{{ u.name }}</td>
-                    <td>{{ u.gpu }}</td>
-                    <td>{{ u.cpu }}</td>
-                    <td>{{ u.memory }}</td>
-                    <td>{{ u.gpu + u.cpu + u.memory }}</td>
-                    <td>
-                      <a :href="'/report/user/' + u.name" target="_blank">보고서</a>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </v-card>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-card class="pa-3" style="border:1.5px solid #e0e0e0;">
-              <div class="text-h6 mb-2">TOP5 누적 유휴시간 랭크</div>
-              <v-table>
-                <thead>
-                  <tr>
-                    <th>순위</th>
-                    <th>이름</th>
-                    <th>유휴시간(일)</th>
-                    <th>리포트</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(u, i) in userRank.idle" :key="u.name">
-                    <td>{{ i+1 }}</td>
-                    <td>{{ u.name }}</td>
-                    <td>{{ u.idle }}</td>
-                    <td>
-                      <a :href="'/report/user/' + u.name" target="_blank">보고서</a>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </v-card>
-          </v-col>
-        </v-row>
+        <SystemInfoCards :sysinfo="sysinfo"/>
+        <TotalUsageCharts
+          :usageLoaded="usageLoaded"
+          :cpuUsageChartData="cpuUsageChartData"
+          :memoryUsageChartData="memoryUsageChartData"
+          :gpuUsageChartData="gpuUsageChartData"
+          :cpuLineOptions="cpuLineOptions"
+          :memoryLineOptions="memoryLineOptions"
+          :gpuLineOptions="gpuLineOptions"
+        />
+        <IndividualCharts
+          :gpuNames="gpuNames"
+          :selectedGpuTemps="selectedGpuTemps"
+          :gpuTempsChartData="gpuTempsChartData"
+          :gpuTempLineOptions="gpuTempLineOptions"
+          :selectedGpu="selectedGpu"
+          :gpuDetailChartData="gpuDetailChartData"
+          :gpuLineOptions="gpuLineOptions"
+          :cpuNames="cpuNames"
+          :selectedCpu="selectedCpu"
+          :cpuDetailChartData="cpuDetailChartData"
+          :cpuLineOptions="cpuLineOptions"
+          :memoryNames="memoryNames"
+          :selectedMemory="selectedMemory"
+          :memoryDetailChartData="memoryDetailChartData"
+          :memoryLineOptions="memoryLineOptions"
+        />
+        <UserRankTables :userRank="userRank"/>
       </v-card-text>
     </v-card>
   </v-container>
@@ -242,7 +42,10 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import axios from 'axios'
-import LineChart from '@/components/resources/LineChart.vue'
+import SystemInfoCards from '@/components/reports/SystemInfoCards.vue'
+import TotalUsageCharts from '@/components/reports/TotalUsageCharts.vue'
+import IndividualCharts from '@/components/reports/IndividualCharts.vue'
+import UserRankTables from '@/components/reports/UserRankTables.vue'
 
 // ----- 상태 선언
 const sysinfo = ref({})
