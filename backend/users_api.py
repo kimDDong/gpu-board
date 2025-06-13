@@ -110,6 +110,20 @@ def activate_user(user_id):
             return jsonify({"user": user})
     return jsonify({"message": "사용자 없음"}), 404
 
+# 사용자 리포트 조회 (CPU, GPU, MEM, 타임스탬프 반환용)
+@app.route('/api/users/<user_id>/report', methods=['GET'])
+def get_user_report(user_id):
+    for user in users:
+        if user["id"] == user_id:
+            return jsonify({
+                "cpu": user.get("cpuUsage", []),
+                "gpu": user.get("gpuUsage", []),
+                "mem": user.get("memUsage", []),
+                "timestamps": user.get("usageTimestamps", [])
+            })
+    return jsonify({"message": "사용자 없음"}), 404
+
+
 
 if __name__ == '__main__':
     app.run(port=5002)
