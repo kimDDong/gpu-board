@@ -144,10 +144,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <UserReportDialog
-      v-model:visible="reportDialogVisible"
-      :user="selectedUserForReport"
-    />
   </v-container>
 </template>
 
@@ -155,12 +151,11 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import axios from 'axios'
 import { Chart, LineController, LineElement, PointElement, LinearScale, Title, CategoryScale } from 'chart.js'
-import UserReportDialog from '@/components/user/UserReportDialog.vue'  // 경로 확인
+import { useRouter } from 'vue-router'
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale)
 
-const reportDialogVisible = ref(false)
-const selectedUserForReport = ref(null)
+
 
 const users = ref([])
 const roles = ref(['관리자', '일반 사용자'])
@@ -222,10 +217,10 @@ const toggleUserActivation = async (user) => {
 }
 
 
+const router = useRouter()
+
 const openReport = (user) => {
-  console.log('레포트 열기 클릭됨:', user)
-  selectedUserForReport.value = user
-  reportDialogVisible.value = true
+  router.push({ path: '/userReport', query: { id: user.id } })
 }
 
 
@@ -233,6 +228,7 @@ const fetchUsers = async () => {
   const res = await axios.get('http://localhost:5002/api/users')
   users.value = res.data
 }
+
 
 const addUser = () => {
   newUser.value = { id: '', name: '', role: '' }
@@ -341,6 +337,12 @@ const renderGradientChart = async (canvas, labels, values) => {
 
   chartInstances.set(canvas, chart)
 }*/
+
+const fetchUserById = async (id) => {
+  const response = await fetch(`http://localhost:5002/api/users/${id}/report`)
+  if (!response.ok) throw new Error('User not found')
+  return await response.json()
+}
 
 onMounted(fetchUsers)
 </script>
