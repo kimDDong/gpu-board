@@ -272,6 +272,7 @@ const fetchUser = async () => {
     }
     const data = await res.json()
     user.value = {
+      name: data.name || '알 수 없음',
       gpuUsage: data.gpu || [],
       cpuUsage: data.cpu || [],
       memUsage: data.mem || [],

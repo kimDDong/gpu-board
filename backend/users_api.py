@@ -116,12 +116,15 @@ def get_user_report(user_id):
     for user in users:
         if user["id"] == user_id:
             return jsonify({
+                "name": user.get("name", ""),
                 "cpu": user.get("cpuUsage", []),
                 "gpu": user.get("gpuUsage", []),
                 "mem": user.get("memUsage", []),
                 "timestamps": user.get("usageTimestamps", [])
             })
     return jsonify({"message": "사용자 없음"}), 404
+
+
 
 
 
