@@ -1,6 +1,6 @@
 <template>
   <v-card class="pa-4" elevation="2">
-    <div class="font-weight-bold mb-2">MEM TOP5 사용자</div>
+    <div class="font-weight-bold mb-2">MEM 사용률 TOP5</div>
     <v-table density="compact">
       <thead>
         <tr>
@@ -10,42 +10,55 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(user, idx) in top5" :key="user.user">
-          <td>{{ idx+1 }}</td>
+        <tr v-for="(user, idx) in users" :key="user.user">
+          <td>{{ idx + 1 }}</td>
           <td>{{ user.user }}</td>
           <td>
-            <v-progress-linear :model-value="user.mem" :color="getColor(user.mem)" height="16" striped>
-              {{ user.mem }} %
+            <v-progress-linear :model-value="user.value" :color="getColor(user.value, 'primary')" height="16" striped>
+              {{ user.value }}%
             </v-progress-linear>
           </td>
         </tr>
-        <tr v-if="!top5.length"><td colspan="3"><v-skeleton-loader type="table-row"/></td></tr>
+        <tr v-if="!users.length">
+          <td colspan="3"><v-skeleton-loader type="table-row" /></td>
+        </tr>
       </tbody>
     </v-table>
   </v-card>
 </template>
+
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
-const top5 = ref([])
+
+const API_INTERVAL = 1000
+const API_URL = 'http://localhost:8000/api/mem_user_rank'
+const WARNING_LEVEL = 70
+const DANGER_LEVEL = 90
+
+const users = ref([])
 let timer = null
-const INTERVAL_MILLIS = 2000
 
-function getColor(val) {
-  if (val >= 80.0) return 'red'       // 위험(빨강)
-  if (val >= 50.0) return 'orange'   // 주의(주황)
-  return 'primary'
+function getColor(val, color) {
+  if (val >= DANGER_LEVEL) return 'red'
+  if (val >= WARNING_LEVEL) return 'orange'
+  return color //'primary'
 }
 
-async function fetchRank() {
- try {
-    const res = await axios.get('http://localhost:8000/api/mem_user_rank')
-    top5.value = res.data.users.sort((a, b) => b.mem - a.mem).slice(0,5)
-  } catch { top5.value = [] }
+
+async function fetch() {
+  try {
+    const res = await axios.get(API_URL)
+    users.value = res.data.users.sort((a, b) => b.value - a.value).slice(0, 5)
+  } catch { users.value = [] }
 }
+
 onMounted(() => {
- fetchRank()
-  timer = setInterval(fetchRank, INTERVAL_MILLIS)
-});
-onUnmounted(() => timer && clearInterval(timer));
+  fetch()
+  timer = setInterval(fetch, API_INTERVAL)
+})
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+})
 </script>

@@ -10,34 +10,43 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(user, idx) in top5" :key="user.user">
-          <td>{{ idx+1 }}</td>
+        <tr v-for="(user, idx) in users" :key="user.user">
+          <td>{{ idx + 1 }}</td>
           <td>{{ user.user }}</td>
           <td>
-              {{ user.idle }}
+            {{ user.value }}
           </td>
         </tr>
-        <tr v-if="!top5.length"><td colspan="3"><v-skeleton-loader type="table-row"/></td></tr>
+        <tr v-if="!users.length">
+          <td colspan="3"><v-skeleton-loader type="table-row" /></td>
+        </tr>
       </tbody>
     </v-table>
   </v-card>
 </template>
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
-const top5 = ref([])
-let timer = null
-const INTERVAL_MILLIS = 2000
 
-async function fetchRank() {
- try {
-    const res = await axios.get('http://localhost:8000/api/idle_user_rank')
-    top5.value = res.data.users.sort((a, b) => b.idle - a.idle).slice(0,5)
-  } catch { top5.value = [] }
+const API_INTERVAL = 1000
+const API_URL = 'http://localhost:8000/api/idle_user_rank'
+
+const users = ref([])
+let timer = null
+
+async function fetch() {
+  try {
+    const res = await axios.get(API_URL)
+    users.value = res.data.users.sort((a, b) => b.value - a.value).slice(0, 5)
+  } catch { users.value = [] }
 }
+
 onMounted(() => {
- fetchRank()
-  timer = setInterval(fetchRank, INTERVAL_MILLIS)
-});
-onUnmounted(() => timer && clearInterval(timer));
+  fetch()
+  timer = setInterval(fetch, API_INTERVAL)
+})
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+})
 </script>

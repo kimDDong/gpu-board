@@ -1,6 +1,6 @@
 <script setup>
-import Resources from './resources.vue'
+import board from '@/pages/board.vue'
 </script>
 <template>
-  <Resources />
+  <board />
 </template>

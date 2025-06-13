@@ -5,20 +5,20 @@ import time
 
 app = Blueprint('dashboard_api', __name__)
 
-@app.route('/api/gpu/count')
-def gpu_count(): return jsonify({"value": random.randint(0, 8)})
-
 @app.route('/api/cpu/count')
 def cpu_count(): return jsonify({"value": random.randint(4, 32)})
+
+@app.route('/api/gpu/count')
+def gpu_count(): return jsonify({"value": random.randint(1, 8)})
 
 @app.route('/api/mem/total')
 def mem_total(): return jsonify({"value": random.choice([64, 128, 256, 512])})
 
 @app.route('/api/system/idletime')
-def idle_time(): return jsonify({"value": random.randint(0, 10000)})
+def idle_time(): return jsonify({"value": random.randint(1, 10000)})
 
 @app.route('/api/system/uptime')
-def up_time(): return jsonify({"value": random.randint(0, 10000)})
+def up_time(): return jsonify({"value": random.randint(1, 10000)})
 
 @app.route('/api/cpu/usage')
 def cpu_usage():
@@ -74,11 +74,11 @@ def cpu_user_rank():
     normalized[-1] = round(normalized[-1] + diff, 1)
 
     data = [
-        {'user': u, 'cpu': val}
+        {'user': u, 'value': val}
         for u, val in zip(selected_users, normalized)
     ]
     # (정렬 필요하면 요청하신 방식대로)
-    data = sorted(data, key=lambda x: x['cpu'], reverse=True)
+    data = sorted(data, key=lambda x: x['value'], reverse=True)
     return jsonify({'users': data})
 
 @app.route('/api/gpu_user_rank')
@@ -95,10 +95,10 @@ def gpu_user_rank():
     normalized[-1] = round(normalized[-1] + diff, 1)
 
     data = [
-        {'user': u, 'gpu': val}
+        {'user': u, 'value': val}
         for u, val in zip(selected_users, normalized)
     ]
-    data = sorted(data, key=lambda x: x['gpu'], reverse=True)
+    data = sorted(data, key=lambda x: x['value'], reverse=True)
     return jsonify({'users': data})
 
 @app.route('/api/mem_user_rank')
@@ -115,11 +115,11 @@ def mem_user_rank():
     normalized[-1] = round(normalized[-1] + diff, 1)
 
     data = [
-        {'user': u, 'mem': val}
+        {'user': u, 'value': val}
         for u, val in zip(selected_users, normalized)
     ]
     # (정렬 필요하면 요청하신 방식대로)
-    data = sorted(data, key=lambda x: x['mem'], reverse=True)
+    data = sorted(data, key=lambda x: x['value'], reverse=True)
     return jsonify({'users': data})
 
 
@@ -128,8 +128,8 @@ def idle_user_rank():
     import random
     users = [f'user{i+1}' for i in range(20)]
     data = sorted(
-        [{'user': u, 'idle': int(random.uniform(0, 500))} for u in users],
-        key=lambda x: x['idle'],
+        [{'user': u, 'value': int(random.uniform(0, 500))} for u in users],
+        key=lambda x: x['value'],
         reverse=True
     )[:5]
     return jsonify({'users': data})
