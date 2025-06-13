@@ -102,12 +102,18 @@ def get_users():
 
 @app.route("/api/report/sysinfo")
 def report_sysinfo():
-    # 유저수, 자원수, 모델명 등 요약
+    # 유저수, 자원수, 모델명 등 요약 + 활동중/오프라인 상태
     gpu_used = len([a for a in allocations if a["type"] == "GPU"])
     cpu_used = len([a for a in allocations if a["type"] == "CPU"])
     memory_used = len([a for a in allocations if a["type"] == "Memory"])
+    # 활동중/오프라인: 임의 40~80%를 "활동중"으로 표기
+    user_count = len(users)
+    user_active = random.randint(int(user_count*0.4), int(user_count*0.8))
+    user_inactive = user_count - user_active
     return jsonify({
         "user_count": len(users),
+        "user_active": user_active,
+        "user_inactive": user_inactive,
         "gpu_count": GPU_COUNT,
         "gpu_models": sorted(list(set([r["model"] for r in resources if r["type"] == "GPU"]))),
         "gpu_used": gpu_used,

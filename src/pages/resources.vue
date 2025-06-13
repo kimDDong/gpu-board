@@ -1,5 +1,22 @@
 <template>
   <v-container>
+    <!-- 사용자 검색 (제목 포함) -->
+    <v-row class="mb-6">
+      <v-col cols="12">
+        <v-card class="pa-4" style="border:1.5px solid #e0e0e0;">
+          <div class="text-h5 mb-2">사용자 검색</div>
+          <v-text-field
+            v-model="searchKeyword"
+            placeholder="이름 또는 ID 검색"
+            dense
+            hide-details
+            prepend-inner-icon="mdi-magnify"
+            style="max-width: 320px;"
+          />
+        </v-card>
+      </v-col>
+    </v-row>
+
     <v-row>
       <v-col>
         <v-btn @click="assignDialog = true" color="primary" class="mb-3">
@@ -10,7 +27,6 @@
             <v-icon left>mdi-chart-bar</v-icon> 자원 현황/보고서 보기
           </v-btn>
         </router-link>
-
         <v-select
           v-model="resourceTypeFilter"
           :items="['ALL', 'GPU', 'CPU', 'Memory']"
@@ -21,9 +37,10 @@
         />
       </v-col>
     </v-row>
+
     <!-- 사용자별 자원 테이블 -->
     <v-row>
-      <v-col cols="12" md="6" v-for="user in users" :key="user">
+      <v-col cols="12" md="6" v-for="user in filteredUsers" :key="user">
         <v-card class="mb-4">
           <v-card-title>
             <span>{{ user }} - 할당 자원</span>
@@ -65,6 +82,7 @@
         </v-card>
       </v-col>
     </v-row>
+
     <!-- 자원 할당 다이얼로그 (여러 개 동시) -->
     <v-dialog v-model="assignDialog" max-width="520">
       <v-card>
@@ -153,6 +171,15 @@ import axios from 'axios'
 // 데이터 상태
 const users = ref([])
 const resources = ref([])
+
+// 🔍 사용자 검색 (이름 또는 ID)
+const searchKeyword = ref('')
+const filteredUsers = computed(() => {
+  if (!searchKeyword.value) return users.value
+  return users.value.filter(u =>
+    u.toLowerCase().includes(searchKeyword.value.toLowerCase())
+  )
+})
 
 // 자원종류(GPU/CPU/Memory/ALL) 필터
 const resourceTypeFilter = ref('ALL')

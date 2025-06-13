@@ -6,7 +6,7 @@
         <v-spacer/>
       </v-card-title>
       <v-card-text>
-        <!-- sysinfo 카드 -->
+        <!-- sysinfo -->
         <v-row class="mb-6">
           <v-col cols="12" md="3">
             <v-card color="deep-purple lighten-2" class="pa-4 text-white" style="border:1.5px solid #e0e0e0;">
@@ -14,7 +14,23 @@
                 <v-icon size="32">mdi-account-multiple</v-icon>
                 <span class="text-h6 ml-2">총 유저</span>
               </div>
-              <div class="text-h3 font-weight-bold">{{ sysinfo.user_count }}</div>
+              <div class="d-flex align-center">
+                <div class="text-h3 font-weight-bold">{{ sysinfo.user_count }}</div>
+                <div class="ml-4 d-flex align-center" style="gap:0.4em">
+                  <span>
+                    <v-icon color="green" size="16" v-if="sysinfo.user_active > 0">mdi-circle</v-icon>
+                    <span class="text-caption">{{ sysinfo.user_active }}</span>
+                  </span>
+                  <span>
+                    <v-icon color="red" size="16" v-if="sysinfo.user_inactive > 0">mdi-circle</v-icon>
+                    <span class="text-caption">{{ sysinfo.user_inactive }}</span>
+                  </span>
+                </div>
+              </div>
+              <div class="text-caption mt-1">
+                활동중 <span class="font-weight-bold" style="color:#b9f6ca">{{ sysinfo.user_active }}</span>,
+                오프라인 <span class="font-weight-bold" style="color:#ff8a80">{{ sysinfo.user_inactive }}</span>
+              </div>
             </v-card>
           </v-col>
           <v-col cols="12" md="3">
@@ -56,31 +72,37 @@
         <v-row class="mb-4">
           <v-col cols="12" md="6">
             <v-card class="pa-4 mb-2" style="border:1.5px solid #e0e0e0;">
-              <LineChart v-if="usageLoaded"
-                :chart-data="cpuUsageChartData"
-                :options="cpuLineOptions"
-                title="CPU 전체 사용량" />
-              <div v-else>Loading...</div>
+              <div style="min-height:170px;">
+                <LineChart v-if="usageLoaded"
+                  :chart-data="cpuUsageChartData"
+                  :options="cpuLineOptions"
+                  title="CPU 전체 사용량" />
+                <div v-else>Loading...</div>
+              </div>
             </v-card>
           </v-col>
           <v-col cols="12" md="6">
             <v-card class="pa-4 mb-2" style="border:1.5px solid #e0e0e0;">
-              <LineChart v-if="usageLoaded"
-                :chart-data="memoryUsageChartData"
-                :options="memoryLineOptions"
-                title="Memory 전체 사용량" />
-              <div v-else>Loading...</div>
+              <div style="min-height:170px;">
+                <LineChart v-if="usageLoaded"
+                  :chart-data="memoryUsageChartData"
+                  :options="memoryLineOptions"
+                  title="Memory 전체 사용량" />
+                <div v-else>Loading...</div>
+              </div>
             </v-card>
           </v-col>
         </v-row>
         <v-row class="mb-6">
           <v-col cols="12">
             <v-card class="pa-4" style="border:2.5px solid #8e24aa;">
-              <LineChart v-if="usageLoaded"
-                :chart-data="gpuUsageChartData"
-                :options="gpuLineOptions"
-                title="GPU 전체 사용량 (크게 표시)" />
-              <div v-else>Loading...</div>
+              <div style="min-height:230px;">
+                <LineChart v-if="usageLoaded"
+                  :chart-data="gpuUsageChartData"
+                  :options="gpuLineOptions"
+                  title="GPU 전체 사용량 (크게 표시)" />
+                <div v-else>Loading...</div>
+              </div>
             </v-card>
           </v-col>
         </v-row>
@@ -102,43 +124,53 @@
                   chips
                 />
               </div>
-              <LineChart
-                v-if="gpuTempsChartData"
-                :chart-data="gpuTempsChartData"
-                :options="gpuTempLineOptions"
-                title="GPU 온도"
-              />
+              <div style="min-height:170px;">
+                <LineChart
+                  v-if="gpuTempsChartData"
+                  :chart-data="gpuTempsChartData"
+                  :options="gpuTempLineOptions"
+                  title="GPU 온도"
+                />
+              </div>
             </v-card>
           </v-col>
         </v-row>
 
-        <!-- 개별 사용량 라인차트(3분할) -->
+        <!-- GPU 개별 사용량(1줄), CPU/Memory는 2col -->
         <v-row>
-          <v-col cols="12" md="4">
+          <v-col cols="12">
             <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
               <div class="d-flex align-center mb-2">
                 <div class="text-h6">GPU 개별 사용량</div>
                 <v-select :items="gpuNames" v-model="selectedGpu" label="GPU 선택" dense class="ml-4" style="max-width:150px" />
               </div>
-              <LineChart v-if="gpuDetailChartData" :chart-data="gpuDetailChartData" :options="gpuLineOptions" title="GPU 개별 사용량" />
+              <div style="min-height:170px;">
+                <LineChart v-if="gpuDetailChartData" :chart-data="gpuDetailChartData" :options="gpuLineOptions" title="GPU 개별 사용량" />
+              </div>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
+        </v-row>
+        <v-row>
+          <v-col cols="12" md="6">
             <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
               <div class="d-flex align-center mb-2">
                 <div class="text-h6">CPU 개별 사용량</div>
                 <v-select :items="cpuNames" v-model="selectedCpu" label="CPU 선택" dense class="ml-4" style="max-width:150px" />
               </div>
-              <LineChart v-if="cpuDetailChartData" :chart-data="cpuDetailChartData" :options="cpuLineOptions" title="CPU 개별 사용량" />
+              <div style="min-height:170px;">
+                <LineChart v-if="cpuDetailChartData" :chart-data="cpuDetailChartData" :options="cpuLineOptions" title="CPU 개별 사용량" />
+              </div>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="6">
             <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
               <div class="d-flex align-center mb-2">
                 <div class="text-h6">Memory 개별 사용량</div>
                 <v-select :items="memoryNames" v-model="selectedMemory" label="Memory 선택" dense class="ml-4" style="max-width:150px" />
               </div>
-              <LineChart v-if="memoryDetailChartData" :chart-data="memoryDetailChartData" :options="memoryLineOptions" title="Memory 개별 사용률(%)" />
+              <div style="min-height:170px;">
+                <LineChart v-if="memoryDetailChartData" :chart-data="memoryDetailChartData" :options="memoryLineOptions" title="Memory 개별 사용률(%)" />
+              </div>
             </v-card>
           </v-col>
         </v-row>
@@ -220,7 +252,7 @@ const gpuNames = ref([])
 const cpuNames = ref([])
 const memoryNames = ref([])
 const selectedGpu = ref('')
-const selectedGpuTemps = ref([])  // 여러개!
+const selectedGpuTemps = ref([])
 const selectedCpu = ref('')
 const selectedMemory = ref('')
 const gpuDetail = ref({ dates: [], values: [] })
@@ -243,7 +275,6 @@ const lineOptionsBase = {
   scales: { y: { beginAtZero: true } }
 }
 
-// ----- 툴팁 옵션(퍼센트 표시)
 const gpuLineOptions = computed(() => ({
   ...lineOptionsBase,
   plugins: {
@@ -352,7 +383,6 @@ watch(selectedGpuTemps, async (gpus) => {
   }
 }, { immediate: true })
 
-// 여러 GPU 온도 데이터셋
 const gpuTempsChartData = computed(() => {
   if (!selectedGpuTemps.value.length) return null
   const datasets = selectedGpuTemps.value.map((gpu, i) => {
@@ -372,7 +402,6 @@ const gpuTempsChartData = computed(() => {
   return { labels: gpuTempSeries.value[selectedGpuTemps.value[0]]?.dates ?? [], datasets }
 })
 
-// ----- 차트 데이터 computed
 const gpuUsageChartData = computed(() => ({
   labels: totalUsage.value.dates,
   datasets: [
