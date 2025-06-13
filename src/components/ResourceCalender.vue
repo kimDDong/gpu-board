@@ -1,17 +1,11 @@
 <!-- src/components/ResourceCalendar.vue -->
 <template>
   <div style="background: white; border-radius:16px; padding:12px">
-    <FullCalendar
-      :events="events"
-      :initial-view="'dayGridMonth'"
-      :header-toolbar="{
-        left: 'prev,next today',
-        center: 'title',
-        right: ''
-      }"
-      :event-color="'#1976d2'"
-      height="480px"
-    />
+    <FullCalendar :events="events" :initial-view="'dayGridMonth'" :header-toolbar="{
+      left: 'prev,next today',
+      center: 'title',
+      right: ''
+    }" :event-color="'#1976d2'" height="480px" />
   </div>
 </template>
 <script setup>
@@ -21,7 +15,7 @@ import { onMounted, ref } from 'vue'
 import axios from 'axios'
 const events = ref([])
 onMounted(async () => {
-  events.value = (await axios.get('http://127.0.0.1:5000/api/reports/calendar')).data
+  events.value = (await axios.get('http://localhost:8000/api/reports/calendar')).data
 })
 </script>
 <style>

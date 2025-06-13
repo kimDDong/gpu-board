@@ -8,7 +8,8 @@
         <!-- 검색/필터 -->
         <v-row class="align-center mb-4" no-gutters>
           <v-col cols="12" md="6" class="pr-2">
-            <v-text-field v-model="searchKeyword" placeholder="이름, 이메일 또는 ID 검색" dense hide-details prepend-inner-icon="mdi-magnify" />
+            <v-text-field v-model="searchKeyword" placeholder="이름, 이메일 또는 ID 검색" dense hide-details
+              prepend-inner-icon="mdi-magnify" />
           </v-col>
           <v-col cols="6" md="3" class="pr-2">
             <v-select label="역할 필터" :items="['전체', ...roles]" v-model="roleFilter" dense hide-details />
@@ -19,55 +20,38 @@
         </v-row>
 
         <!-- 테이블 -->
-        <v-checkbox
-          v-model="hideExpired"
-          label="만료 사용자 숨기기"
-          density="compact"
-          class="mb-2"
-        />
-            <v-data-table
-              :headers="headers"
-              :items="filteredUsers"
-              item-key="id"
-              class="elevation-1"
-              density="comfortable"
-              :items-per-page-options="[10, 20, 30]"
-              :items-per-page="10"
-              :item-class="item => !item.active ? 'inactive-orange-text' : ''"
-            >
+        <v-checkbox v-model="hideExpired" label="만료 사용자 숨기기" density="compact" class="mb-2" />
+        <v-data-table :headers="headers" :items="filteredUsers" item-key="id" class="elevation-1" density="comfortable"
+          :items-per-page-options="[10, 20, 30]" :items-per-page="10"
+          :item-class="item => !item.active ? 'inactive-orange-text' : ''">
 
-            <template #item.actions="{ item }">
-              <v-btn icon @click="editUser(item)" size="x-small">
-                <v-icon>mdi-pencil</v-icon>
-              </v-btn>
-              <v-btn icon @click="deleteUser(item.id)" size="x-small">
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
-              <v-btn
-                size="x-small"
-                @click="toggleUserActivation(item)"
-                class="activation-btn"
-                variant="outlined"
-              >
-                {{ item.active ? '비활성화' : '활성화' }}
-              </v-btn>
-               <!-- ✅ 비활성화 상태인 경우에만 아이콘 + 배지 표시 -->
-  <span v-if="!item.active" class="ml-2 d-inline-flex align-center">
-    <v-icon size="14" color="orange" class="mr-1">mdi-alert-circle</v-icon>
-    <v-chip label small color="orange" text-color="white" variant="flat">
-      비활성화됨
-    </v-chip>
-  </span>
-  <v-btn icon @click="openReport(item)" size="x-small">
-  <v-icon>mdi-file-document</v-icon>
-</v-btn>
+          <template #item.actions="{ item }">
+            <v-btn icon @click="editUser(item)" size="x-small">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn icon @click="deleteUser(item.id)" size="x-small">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+            <v-btn size="x-small" @click="toggleUserActivation(item)" class="activation-btn" variant="outlined">
+              {{ item.active ? '비활성화' : '활성화' }}
+            </v-btn>
+            <!-- ✅ 비활성화 상태인 경우에만 아이콘 + 배지 표시 -->
+            <span v-if="!item.active" class="ml-2 d-inline-flex align-center">
+              <v-icon size="14" color="orange" class="mr-1">mdi-alert-circle</v-icon>
+              <v-chip label small color="orange" text-color="white" variant="flat">
+                비활성화됨
+              </v-chip>
+            </span>
+            <v-btn icon @click="openReport(item)" size="x-small">
+              <v-icon>mdi-file-document</v-icon>
+            </v-btn>
 
-            </template>
+          </template>
           <template #item.daysLeft="{ item }">
-          <span :style="{ color: item.daysLeft < 0 ? 'red' : undefined }">
-            {{ item.daysLeft }}일
-          </span>
-        </template>
+            <span :style="{ color: item.daysLeft < 0 ? 'red' : undefined }">
+              {{ item.daysLeft }}일
+            </span>
+          </template>
 
           <!--
           <template #item.usageChart="{ item }">
@@ -105,15 +89,11 @@
       <v-card>
         <v-card-title class="text-h6">사용자 추가</v-card-title>
         <v-card-text>
-  <v-text-field label="아이디" v-model="newUser.id" />
-  <v-text-field label="이름" v-model="newUser.name" />
-  <v-select label="역할" :items="roles" v-model="newUser.role" />
-  <v-text-field
-    label="사용 기한"
-    v-model="newUser.expiry"
-    type="date"
-  />
-</v-card-text>
+          <v-text-field label="아이디" v-model="newUser.id" />
+          <v-text-field label="이름" v-model="newUser.name" />
+          <v-select label="역할" :items="roles" v-model="newUser.role" />
+          <v-text-field label="사용 기한" v-model="newUser.expiry" type="date" />
+        </v-card-text>
 
         <v-card-actions>
           <v-spacer />
@@ -128,15 +108,11 @@
       <v-card>
         <v-card-title class="text-h6">사용자 수정</v-card-title>
         <v-card-text>
-  <v-text-field label="아이디" v-model="editUserData.id" disabled />
-  <v-text-field label="이름" v-model="editUserData.name" />
-  <v-select label="역할" :items="roles" v-model="editUserData.role" />
-  <v-text-field
-    label="사용 기한"
-    v-model="editUserData.expiry"
-    type="date"
-  />
-</v-card-text>
+          <v-text-field label="아이디" v-model="editUserData.id" disabled />
+          <v-text-field label="이름" v-model="editUserData.name" />
+          <v-select label="역할" :items="roles" v-model="editUserData.role" />
+          <v-text-field label="사용 기한" v-model="editUserData.expiry" type="date" />
+        </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn text @click="dialogEdit = false">취소</v-btn>
@@ -211,7 +187,7 @@ const toggleUserActivation = async (user) => {
   const confirmed = confirm(`정말로 ${user.name} 계정을 ${user.active ? '비활성화' : '활성화'}하시겠습니까?`)
   if (!confirmed) return
 
-  const res = await axios.post(`http://localhost:5002/api/users/${user.id}/${action}`)
+  const res = await axios.post(`http://localhost:8000/api/users/${user.id}/${action}`)
   const idx = users.value.findIndex(u => u.id === user.id)
   if (idx !== -1) users.value[idx] = res.data.user
 }
@@ -225,7 +201,7 @@ const openReport = (user) => {
 
 
 const fetchUsers = async () => {
-  const res = await axios.get('http://localhost:5002/api/users')
+  const res = await axios.get('http://localhost:8000/api/users')
   users.value = res.data
 }
 
@@ -238,7 +214,7 @@ const addUser = () => {
 const confirmAddUser = async () => {
   if (!newUser.value.id || !newUser.value.name || !newUser.value.role) return alert('모든 항목을 입력해주세요.')
   if (users.value.some(u => u.id === newUser.value.id)) return alert('이미 존재하는 아이디입니다.')
-  const res = await axios.post('http://localhost:5002/api/users', newUser.value)
+  const res = await axios.post('http://localhost:8000/api/users', newUser.value)
   users.value.push(res.data.user)
   dialogAdd.value = false
 }
@@ -249,7 +225,7 @@ const editUser = (user) => {
 }
 
 const confirmEditUser = async () => {
-  const res = await axios.put(`http://localhost:5002/api/users/${editUserData.value.id}`, {
+  const res = await axios.put(`http://localhost:8000/api/users/${editUserData.value.id}`, {
     name: editUserData.value.name,
     role: editUserData.value.role,
     expiry: editUserData.value.expiry
@@ -260,13 +236,13 @@ const confirmEditUser = async () => {
 }
 
 const deleteUser = async (userId) => {
-  await axios.delete(`http://localhost:5002/api/users/${userId}`)
+  await axios.delete(`http://localhost:8000/api/users/${userId}`)
   users.value = users.value.filter(u => u.id !== userId)
 }
 
 watch(selectedRole, async (newRole) => {
   if (!newRole) return
-  const res = await axios.get(`http://localhost:5002/api/roles/${newRole}`)
+  const res = await axios.get(`http://localhost:8000/api/roles/${newRole}`)
   const savedPerms = res.data.permissions || []
   permissions.value.forEach(p => p.value = savedPerms.includes(p.label))
 })
@@ -274,7 +250,7 @@ watch(selectedRole, async (newRole) => {
 const savePermissions = async () => {
   if (!selectedRole.value) return alert('역할을 선택하세요.')
   const selectedPerms = permissions.value.filter(p => p.value).map(p => p.label)
-  await axios.post('http://localhost:5002/api/roles', {
+  await axios.post('http://localhost:8000/api/roles', {
     role: selectedRole.value,
     permissions: selectedPerms
   })
@@ -339,7 +315,7 @@ const renderGradientChart = async (canvas, labels, values) => {
 }*/
 
 const fetchUserById = async (id) => {
-  const response = await fetch(`http://localhost:5002/api/users/${id}/report`)
+  const response = await fetch(`http://localhost:8000/api/users/${id}/report`)
   if (!response.ok) throw new Error('User not found')
   return await response.json()
 }
@@ -364,6 +340,7 @@ onMounted(fetchUsers)
   height: 100% !important;
   display: block;
 }
+
 .chart-wrapper small {
   position: absolute;
   top: 0;
@@ -371,6 +348,7 @@ onMounted(fetchUsers)
   font-size: 10px;
   color: #aaa;
 }
+
 .activation-btn {
   min-width: 64px;
   padding: 0 8px;
@@ -378,8 +356,10 @@ onMounted(fetchUsers)
   text-transform: none;
   height: 28px;
 }
+
 .inactive-orange-text td {
-  color: #FFA500 !important; /* 주황색 글씨 */
+  color: #FFA500 !important;
+  /* 주황색 글씨 */
   font-weight: 500;
 }
 </style>

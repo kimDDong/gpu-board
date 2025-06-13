@@ -156,7 +156,7 @@ new Chart(ctx, {
 ### 사용자 추가 요청
 
 ```bash
-curl -X POST http://localhost:5002/api/users   -H "Content-Type: application/json"   -d '{
+curl -X POST http://localhost:8000/api/users   -H "Content-Type: application/json"   -d '{
     "id": "user16",
     "name": "강하늘",
     "role": "일반 사용자",
@@ -167,7 +167,7 @@ curl -X POST http://localhost:5002/api/users   -H "Content-Type: application/jso
 ### 역할 권한 등록
 
 ```bash
-curl -X POST http://localhost:5002/api/roles   -H "Content-Type: application/json"   -d '{
+curl -X POST http://localhost:8000/api/roles   -H "Content-Type: application/json"   -d '{
     "role": "관리자",
     "permissions": ["사용자 보기", "사용자 삭제"]
   }'

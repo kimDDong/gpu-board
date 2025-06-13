@@ -11,28 +11,16 @@
       <v-col cols="12" md="6">
         <v-card class="pa-3" elevation="2">
           <div class="text-caption font-weight-medium mb-1">시작일</div>
-          <v-text-field
-            v-model="dateRange.start"
-            type="date"
-            variant="outlined"
-            density="comfortable"
-            hide-details
-            class="date-input"
-          />
+          <v-text-field v-model="dateRange.start" type="date" variant="outlined" density="comfortable" hide-details
+            class="date-input" />
         </v-card>
       </v-col>
 
       <v-col cols="12" md="6">
         <v-card class="pa-3" elevation="2">
           <div class="text-caption font-weight-medium mb-1">종료일</div>
-          <v-text-field
-            v-model="dateRange.end"
-            type="date"
-            variant="outlined"
-            density="comfortable"
-            hide-details
-            class="date-input"
-          />
+          <v-text-field v-model="dateRange.end" type="date" variant="outlined" density="comfortable" hide-details
+            class="date-input" />
         </v-card>
       </v-col>
     </v-row>
@@ -59,13 +47,7 @@
     </v-card>
 
     <!-- GPU 경고 -->
-    <v-alert
-      type="warning"
-      v-if="hasAbnormalUsage(user)"
-      class="mb-4"
-      prominent
-      dense
-    >
+    <v-alert type="warning" v-if="hasAbnormalUsage(user)" class="mb-4" prominent dense>
       ⚠️ GPU 사용률이 5일 이상 90%를 초과했습니다. 리소스 분산이 필요합니다.
     </v-alert>
 
@@ -265,7 +247,7 @@ const renderGradientChart = async (canvas, labels, values) => {
 const fetchUser = async () => {
   try {
     const id = route.query.id
-    const res = await fetch(`http://localhost:5002/api/users/${id}/report`)
+    const res = await fetch(`http://localhost:8000/api/users/${id}/report`)
     if (!res.ok) {
       const err = await res.text()
       throw new Error(`서버 오류: ${res.status} - ${err}`)
@@ -325,6 +307,7 @@ onMounted(fetchUser)
 .chart-wrapper {
   height: 120px;
 }
+
 .chart-wrapper-large {
   height: 180px;
 }
@@ -333,9 +316,11 @@ onMounted(fetchUser)
 .chart-wrapper.tall {
   height: 200px;
 }
+
 .chart-wrapper.big {
   height: 220px;
 }
+
 .chart-wrapper.huge {
   height: 320px;
 }

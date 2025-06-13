@@ -3,40 +3,21 @@
     <v-card>
       <v-card-title>
         <span class="text-h5">자원 대시보드 보고서</span>
-        <v-spacer/>
+        <v-spacer />
       </v-card-title>
       <v-card-text>
         <SystemInfoCards :sysinfo="sysinfo" />
-        <TotalUsageCharts
-          :usageLoaded="usageLoaded"
-          :cpuUsageChartData="cpuUsageChartData"
-          :memoryUsageChartData="memoryUsageChartData"
-          :gpuUsageChartData="gpuUsageChartData"
-          :cpuLineOptions="cpuLineOptions"
-          :memoryLineOptions="memoryLineOptions"
-          :gpuLineOptions="gpuLineOptions"
-        />
-        <IndividualCharts
-          :gpuNames="gpuNames"
-          :cpuNames="cpuNames"
-          :memoryNames="memoryNames"
-          :selectedGpuTemps="selectedGpuTemps"
-          @update:selectedGpuTemps="val => selectedGpuTemps = val"
-          :gpuTempsChartData="gpuTempsChartData"
-          :gpuTempLineOptions="gpuTempLineOptions"
-          :selectedGpu="selectedGpu"
-          @update:selectedGpu="val => selectedGpu = val"
-          :gpuDetailChartData="gpuDetailChartData"
-          :gpuLineOptions="gpuLineOptions"
-          :selectedCpu="selectedCpu"
-          @update:selectedCpu="val => selectedCpu = val"
-          :cpuDetailChartData="cpuDetailChartData"
-          :cpuLineOptions="cpuLineOptions"
-          :selectedMemory="selectedMemory"
-          @update:selectedMemory="val => selectedMemory = val"
-          :memoryDetailChartData="memoryDetailChartData"
-          :memoryLineOptions="memoryLineOptions"
-        />
+        <TotalUsageCharts :usageLoaded="usageLoaded" :cpuUsageChartData="cpuUsageChartData"
+          :memoryUsageChartData="memoryUsageChartData" :gpuUsageChartData="gpuUsageChartData"
+          :cpuLineOptions="cpuLineOptions" :memoryLineOptions="memoryLineOptions" :gpuLineOptions="gpuLineOptions" />
+        <IndividualCharts :gpuNames="gpuNames" :cpuNames="cpuNames" :memoryNames="memoryNames"
+          :selectedGpuTemps="selectedGpuTemps" @update:selectedGpuTemps="val => selectedGpuTemps = val"
+          :gpuTempsChartData="gpuTempsChartData" :gpuTempLineOptions="gpuTempLineOptions" :selectedGpu="selectedGpu"
+          @update:selectedGpu="val => selectedGpu = val" :gpuDetailChartData="gpuDetailChartData"
+          :gpuLineOptions="gpuLineOptions" :selectedCpu="selectedCpu" @update:selectedCpu="val => selectedCpu = val"
+          :cpuDetailChartData="cpuDetailChartData" :cpuLineOptions="cpuLineOptions" :selectedMemory="selectedMemory"
+          @update:selectedMemory="val => selectedMemory = val" :memoryDetailChartData="memoryDetailChartData"
+          :memoryLineOptions="memoryLineOptions" />
         <UserRankTables :userRank="userRank" />
       </v-card-text>
     </v-card>
@@ -87,7 +68,7 @@ const gpuLineOptions = computed(() => ({
         label: ctx => {
           const value = ctx.raw
           const total = sysinfo.value.gpu_count || 1
-          const percent = Math.round((value/total)*100)
+          const percent = Math.round((value / total) * 100)
           return `사용률: ${percent}% (${value}/${total}개)`
         }
       }
@@ -103,7 +84,7 @@ const cpuLineOptions = computed(() => ({
         label: ctx => {
           const value = ctx.raw
           const total = sysinfo.value.cpu_count || 1
-          const percent = Math.round((value/total)*100)
+          const percent = Math.round((value / total) * 100)
           return `사용률: ${percent}% (${value}/${total}개)`
         }
       }
@@ -119,7 +100,7 @@ const memoryLineOptions = computed(() => ({
         label: ctx => {
           const value = ctx.raw
           const total = sysinfo.value.memory_count || 1
-          const percent = Math.round((value/total)*100)
+          const percent = Math.round((value / total) * 100)
           return `사용률: ${percent}% (${value}/${total}슬롯)`
         }
       }
@@ -138,17 +119,17 @@ const gpuTempLineOptions = {
   }
 }
 async function fetchAll() {
-  sysinfo.value = (await axios.get('http://127.0.0.1:5000/api/report/sysinfo')).data
-  const usage = (await axios.get('http://127.0.0.1:5000/api/report/total_usage')).data
+  sysinfo.value = (await axios.get('http://localhost:8000/api/report/sysinfo')).data
+  const usage = (await axios.get('http://localhost:8000/api/report/total_usage')).data
   totalUsage.value = usage
   usageLoaded.value = true
   await fetchStatus()
-  userRank.value = (await axios.get('http://127.0.0.1:5000/api/report/rank')).data
+  userRank.value = (await axios.get('http://localhost:8000/api/report/rank')).data
   fetchIndividualDetails()
 }
 onMounted(fetchAll)
 async function fetchStatus() {
-  const status = (await axios.get('http://127.0.0.1:5000/api/report/status')).data
+  const status = (await axios.get('http://localhost:8000/api/report/status')).data
   gpuNames.value = status.gpu_names
   cpuNames.value = status.cpu_names
   memoryNames.value = status.memory_names
@@ -160,13 +141,13 @@ async function fetchStatus() {
 }
 async function fetchIndividualDetails() {
   if (selectedGpu.value) {
-    gpuDetail.value = (await axios.get('http://127.0.0.1:5000/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value } })).data
+    gpuDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value } })).data
   }
   if (selectedCpu.value) {
-    cpuDetail.value = (await axios.get('http://127.0.0.1:5000/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value } })).data
+    cpuDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value } })).data
   }
   if (selectedMemory.value) {
-    memoryDetail.value = (await axios.get('http://127.0.0.1:5000/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value } })).data
+    memoryDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value } })).data
   }
 }
 watch(selectedGpu, fetchIndividualDetails)
@@ -175,7 +156,7 @@ watch(selectedMemory, fetchIndividualDetails)
 watch(selectedGpuTemps, async (gpus) => {
   for (const gpu of gpus) {
     if (!gpuTempSeries.value[gpu]) {
-      const res = await axios.get('http://127.0.0.1:5000/api/report/gpu_temp_series', { params: { name: gpu } })
+      const res = await axios.get('http://localhost:8000/api/report/gpu_temp_series', { params: { name: gpu } })
       gpuTempSeries.value[gpu] = res.data
     }
   }

@@ -3,8 +3,8 @@
     <v-card>
       <v-card-title>
         <span class="text-h5">자원 대시보드 보고서</span>
-        <v-spacer/>
-        <v-btn icon @click="model=false"><v-icon>mdi-close</v-icon></v-btn>
+        <v-spacer />
+        <v-btn icon @click="model = false"><v-icon>mdi-close</v-icon></v-btn>
       </v-card-title>
       <v-card-text>
         <!-- System Info 카드 -->
@@ -57,26 +57,25 @@
         <v-row class="mb-6" style="justify-content:center;">
           <v-col cols="12" md="4">
             <v-card class="pa-3" style="border:1.5px solid #e0e0e0;">
-              <DonutChart :used="sysinfo.gpu_used || 0" :total="sysinfo.gpu_count || 0" label="GPU" color="#8e24aa"/>
+              <DonutChart :used="sysinfo.gpu_used || 0" :total="sysinfo.gpu_count || 0" label="GPU" color="#8e24aa" />
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
             <v-card class="pa-3" style="border:1.5px solid #e0e0e0;">
-              <DonutChart :used="sysinfo.cpu_used || 0" :total="sysinfo.cpu_count || 0" label="CPU" color="#1976d2"/>
+              <DonutChart :used="sysinfo.cpu_used || 0" :total="sysinfo.cpu_count || 0" label="CPU" color="#1976d2" />
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
             <v-card class="pa-3" style="border:1.5px solid #e0e0e0;">
-              <DonutChart :used="sysinfo.memory_used || 0" :total="sysinfo.memory_count || 0" label="Memory" color="#43a047"/>
+              <DonutChart :used="sysinfo.memory_used || 0" :total="sysinfo.memory_count || 0" label="Memory"
+                color="#43a047" />
             </v-card>
           </v-col>
         </v-row>
 
         <!-- 전체 사용량 라인차트 카드 -->
         <v-card class="mb-6 pa-4" style="border:1.5px solid #e0e0e0;">
-          <LineChart v-if="usageLoaded"
-            :chart-data="totalUsageChartData"
-            :options="lineOptions"
+          <LineChart v-if="usageLoaded" :chart-data="totalUsageChartData" :options="lineOptions"
             title="전체 자원 사용량 (GPU/CPU/Memory)" />
           <div v-else>Loading...</div>
         </v-card>
@@ -87,27 +86,33 @@
             <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
               <div class="d-flex align-center mb-2">
                 <div class="text-h6">GPU 개별 사용량</div>
-                <v-select :items="gpuNames" v-model="selectedGpu" label="GPU 선택" dense class="ml-4" style="max-width:150px" />
+                <v-select :items="gpuNames" v-model="selectedGpu" label="GPU 선택" dense class="ml-4"
+                  style="max-width:150px" />
               </div>
-              <LineChart v-if="gpuDetailChartData" :chart-data="gpuDetailChartData" :options="lineOptions" title="GPU 개별 사용량" />
+              <LineChart v-if="gpuDetailChartData" :chart-data="gpuDetailChartData" :options="lineOptions"
+                title="GPU 개별 사용량" />
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
             <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
               <div class="d-flex align-center mb-2">
                 <div class="text-h6">CPU 개별 사용량</div>
-                <v-select :items="cpuNames" v-model="selectedCpu" label="CPU 선택" dense class="ml-4" style="max-width:150px" />
+                <v-select :items="cpuNames" v-model="selectedCpu" label="CPU 선택" dense class="ml-4"
+                  style="max-width:150px" />
               </div>
-              <LineChart v-if="cpuDetailChartData" :chart-data="cpuDetailChartData" :options="lineOptions" title="CPU 개별 사용량" />
+              <LineChart v-if="cpuDetailChartData" :chart-data="cpuDetailChartData" :options="lineOptions"
+                title="CPU 개별 사용량" />
             </v-card>
           </v-col>
           <v-col cols="12" md="4">
             <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
               <div class="d-flex align-center mb-2">
                 <div class="text-h6">Memory 개별 사용량</div>
-                <v-select :items="memoryNames" v-model="selectedMemory" label="Memory 선택" dense class="ml-4" style="max-width:150px" />
+                <v-select :items="memoryNames" v-model="selectedMemory" label="Memory 선택" dense class="ml-4"
+                  style="max-width:150px" />
               </div>
-              <LineChart v-if="memoryDetailChartData" :chart-data="memoryDetailChartData" :options="lineOptions" title="Memory 개별 사용률(%)" />
+              <LineChart v-if="memoryDetailChartData" :chart-data="memoryDetailChartData" :options="lineOptions"
+                title="Memory 개별 사용률(%)" />
             </v-card>
           </v-col>
         </v-row>
@@ -121,17 +126,12 @@
                 <li v-for="(t, i) in gpuTemps" :key="i" style="margin-bottom:10px;">
                   <div class="d-flex align-center mb-1">
                     <span style="width:85px; display:inline-block;">{{ gpuNames[i] }}</span>
-                    <span :style="{ color: getTempColor(t), width:'50px', display:'inline-block'}">
+                    <span :style="{ color: getTempColor(t), width: '50px', display: 'inline-block' }">
                       <b>{{ t }}°C</b>
                     </span>
                   </div>
-                  <v-progress-linear
-                    :model-value="t"
-                    :color="getTempColor(t)"
-                    height="10"
-                    :max="100"
-                    style="margin-bottom:2px;"
-                  />
+                  <v-progress-linear :model-value="t" :color="getTempColor(t)" height="10" :max="100"
+                    style="margin-bottom:2px;" />
                 </li>
               </ul>
             </v-card>
@@ -143,17 +143,12 @@
                 <li v-for="(t, i) in cpuTemps" :key="i" style="margin-bottom:10px;">
                   <div class="d-flex align-center mb-1">
                     <span style="width:85px; display:inline-block;">{{ cpuNames[i] }}</span>
-                    <span :style="{ color: getTempColor(t), width:'50px', display:'inline-block'}">
+                    <span :style="{ color: getTempColor(t), width: '50px', display: 'inline-block' }">
                       <b>{{ t }}°C</b>
                     </span>
                   </div>
-                  <v-progress-linear
-                    :model-value="t"
-                    :color="getTempColor(t)"
-                    height="10"
-                    :max="100"
-                    style="margin-bottom:2px;"
-                  />
+                  <v-progress-linear :model-value="t" :color="getTempColor(t)" height="10" :max="100"
+                    style="margin-bottom:2px;" />
                 </li>
               </ul>
             </v-card>
@@ -169,13 +164,8 @@
                       <b>{{ t }}%</b>
                     </span>
                   </div>
-                  <v-progress-linear
-                    :model-value="t"
-                    color="#1976d2"
-                    height="10"
-                    :max="100"
-                    style="margin-bottom:2px;"
-                  />
+                  <v-progress-linear :model-value="t" color="#1976d2" height="10" :max="100"
+                    style="margin-bottom:2px;" />
                 </li>
               </ul>
             </v-card>
@@ -201,7 +191,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="(u, i) in userRank.usage" :key="u.name">
-                    <td>{{ i+1 }}</td>
+                    <td>{{ i + 1 }}</td>
                     <td>{{ u.name }}</td>
                     <td>{{ u.gpu }}</td>
                     <td>{{ u.cpu }}</td>
@@ -229,7 +219,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="(u, i) in userRank.idle" :key="u.name">
-                    <td>{{ i+1 }}</td>
+                    <td>{{ i + 1 }}</td>
                     <td>{{ u.name }}</td>
                     <td>{{ u.idle }}</td>
                     <td>
@@ -277,18 +267,18 @@ const lineOptions = {
 }
 
 async function fetchAll() {
-  sysinfo.value = (await axios.get('http://127.0.0.1:5000/api/report/sysinfo')).data
-  const usage = (await axios.get('http://127.0.0.1:5000/api/report/total_usage')).data
+  sysinfo.value = (await axios.get('http://localhost:8000/api/report/sysinfo')).data
+  const usage = (await axios.get('http://localhost:8000/api/report/total_usage')).data
   totalUsage.value = usage
   usageLoaded.value = true
   await fetchStatus()
-  userRank.value = (await axios.get('http://127.0.0.1:5000/api/report/rank')).data
+  userRank.value = (await axios.get('http://localhost:8000/api/report/rank')).data
   fetchIndividualDetails()
 }
 onMounted(fetchAll)
 
 async function fetchStatus() {
-  const status = (await axios.get('http://127.0.0.1:5000/api/report/status')).data
+  const status = (await axios.get('http://localhost:8000/api/report/status')).data
   gpuNames.value = status.gpu_names
   cpuNames.value = status.cpu_names
   memoryNames.value = status.memory_names
@@ -303,13 +293,13 @@ async function fetchStatus() {
 
 async function fetchIndividualDetails() {
   if (selectedGpu.value) {
-    gpuDetail.value = (await axios.get('http://127.0.0.1:5000/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value } })).data
+    gpuDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value } })).data
   }
   if (selectedCpu.value) {
-    cpuDetail.value = (await axios.get('http://127.0.0.1:5000/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value } })).data
+    cpuDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value } })).data
   }
   if (selectedMemory.value) {
-    memoryDetail.value = (await axios.get('http://127.0.0.1:5000/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value } })).data
+    memoryDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value } })).data
   }
 }
 watch(selectedGpu, fetchIndividualDetails)

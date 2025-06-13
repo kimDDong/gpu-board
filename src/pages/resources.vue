@@ -5,14 +5,8 @@
       <v-col cols="12">
         <v-card class="pa-4" style="border:1.5px solid #e0e0e0;">
           <div class="text-h5 mb-2">사용자 검색</div>
-          <v-text-field
-            v-model="searchKeyword"
-            placeholder="이름 또는 ID 검색"
-            dense
-            hide-details
-            prepend-inner-icon="mdi-magnify"
-            style="max-width: 320px;"
-          />
+          <v-text-field v-model="searchKeyword" placeholder="이름 또는 ID 검색" dense hide-details
+            prepend-inner-icon="mdi-magnify" style="max-width: 320px;" />
         </v-card>
       </v-col>
     </v-row>
@@ -27,14 +21,8 @@
             <v-icon left>mdi-chart-bar</v-icon> 자원 현황/보고서 보기
           </v-btn>
         </router-link>
-        <v-select
-          v-model="resourceTypeFilter"
-          :items="['ALL', 'GPU', 'CPU', 'Memory']"
-          label="자원 종류 필터"
-          dense
-          class="mb-3"
-          style="max-width: 160px;"
-        />
+        <v-select v-model="resourceTypeFilter" :items="['ALL', 'GPU', 'CPU', 'Memory']" label="자원 종류 필터" dense
+          class="mb-3" style="max-width: 160px;" />
       </v-col>
     </v-row>
 
@@ -57,19 +45,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="r in userResources(user)"
-                    :key="r.type + '_' + r.res_id"
-                  >
+                  <tr v-for="r in userResources(user)" :key="r.type + '_' + r.res_id">
                     <td>{{ r.type }}</td>
                     <td>{{ r.res_id }}</td>
                     <td>{{ r.start_date }} ~ {{ r.end_date }}</td>
                     <td>
-                      <v-btn
-                        size="small"
-                        color="error"
-                        @click="reclaimResource(r)"
-                        >회수</v-btn>
+                      <v-btn size="small" color="error" @click="reclaimResource(r)">회수</v-btn>
                     </td>
                   </tr>
                 </tbody>
@@ -88,71 +69,21 @@
       <v-card>
         <v-card-title>자원 할당</v-card-title>
         <v-card-text>
-          <v-select
-            label="사용자"
-            :items="users"
-            v-model="assignUser"
-            :rules="[v => !!v || '필수 입력']"
-            dense
-            clearable
-          />
-          <v-select
-            label="자원 종류"
-            :items="['GPU','CPU','Memory']"
-            v-model="assignResourceType"
-            dense
-          />
-          <v-select
-            label="자원 선택(복수)"
-            v-model="selectedResourceKeys"
-            :items="filteredAvailableResources"
-            item-title="label"
-            item-value="key"
-            multiple
-            :rules="[v => v && v.length > 0 || '최소 1개 선택']"
-            dense
-          />
-          <v-menu
-            v-model="menu1"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            offset-y
-          >
+          <v-select label="사용자" :items="users" v-model="assignUser" :rules="[v => !!v || '필수 입력']" dense clearable />
+          <v-select label="자원 종류" :items="['GPU', 'CPU', 'Memory']" v-model="assignResourceType" dense />
+          <v-select label="자원 선택(복수)" v-model="selectedResourceKeys" :items="filteredAvailableResources"
+            item-title="label" item-value="key" multiple :rules="[v => v && v.length > 0 || '최소 1개 선택']" dense />
+          <v-menu v-model="menu1" :close-on-content-click="false" transition="scale-transition" offset-y>
             <template #activator="{ props }">
-              <v-text-field
-                label="시작일"
-                v-model="startStr"
-                readonly
-                v-bind="props"
-                dense
-              />
+              <v-text-field label="시작일" v-model="startStr" readonly v-bind="props" dense />
             </template>
-            <v-date-picker
-              v-model="startObj"
-              @update:model-value="onPickStart"
-              color="primary"
-            />
+            <v-date-picker v-model="startObj" @update:model-value="onPickStart" color="primary" />
           </v-menu>
-          <v-menu
-            v-model="menu2"
-            :close-on-content-click="false"
-            transition="scale-transition"
-            offset-y
-          >
+          <v-menu v-model="menu2" :close-on-content-click="false" transition="scale-transition" offset-y>
             <template #activator="{ props }">
-              <v-text-field
-                label="만료일"
-                v-model="endStr"
-                readonly
-                v-bind="props"
-                dense
-              />
+              <v-text-field label="만료일" v-model="endStr" readonly v-bind="props" dense />
             </template>
-            <v-date-picker
-              v-model="endObj"
-              @update:model-value="onPickEnd"
-              color="primary"
-            />
+            <v-date-picker v-model="endObj" @update:model-value="onPickEnd" color="primary" />
           </v-menu>
         </v-card-text>
         <v-card-actions>
@@ -223,12 +154,12 @@ const filteredAvailableResources = computed(() =>
 // 날짜 선택
 function onPickStart(v) {
   startObj.value = v
-  startStr.value = v ? `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
+  startStr.value = v ? `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
   menu1.value = false
 }
 function onPickEnd(v) {
   endObj.value = v
-  endStr.value = v ? `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
+  endStr.value = v ? `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
   menu2.value = false
 }
 function closeAssignDialog() {
@@ -249,7 +180,7 @@ async function confirmAssign() {
   for (const key of selectedResourceKeys.value) {
     const res = availableResources.value.find(r => r.key === key)
     if (!res) continue
-    await axios.post('http://127.0.0.1:5000/api/allocations', {
+    await axios.post('http://localhost:8000/api/allocations', {
       res_id: res.res_id,
       type: res.type,
       user: assignUser.value,
@@ -263,14 +194,14 @@ async function confirmAssign() {
 
 // 자원목록+유저 불러오기
 async function fetchData() {
-  resources.value = (await axios.get('http://127.0.0.1:5000/api/resources')).data
-  users.value = (await axios.get('http://127.0.0.1:5000/api/users')).data
+  resources.value = (await axios.get('http://localhost:8000/api/resources')).data
+  users.value = (await axios.get('http://localhost:8000/api/users')).data
 }
 fetchData()
 
 // 회수
 async function reclaimResource(r) {
-  await axios.post('http://127.0.0.1:5000/api/allocations/reclaim', {
+  await axios.post('http://localhost:8000/api/allocations/reclaim', {
     res_id: r.res_id,
     type: r.type
   })
