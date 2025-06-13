@@ -1,8 +1,10 @@
-from flask import Blueprint, jsonify, request
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 import random
 from datetime import datetime, timedelta
 
-app = Blueprint('users_api', __name__)
+app = Flask(__name__)
+CORS(app)
 
 # 사용자 목록 저장소 (메모리 기반)
 users = []
@@ -107,3 +109,7 @@ def activate_user(user_id):
             user["active"] = True
             return jsonify({"user": user})
     return jsonify({"message": "사용자 없음"}), 404
+
+
+if __name__ == '__main__':
+    app.run(port=5002)
