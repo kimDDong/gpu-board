@@ -6,7 +6,7 @@
         <v-spacer/>
       </v-card-title>
       <v-card-text>
-        <SystemInfoCards :sysinfo="sysinfo"/>
+        <SystemInfoCards :sysinfo="sysinfo" />
         <TotalUsageCharts
           :usageLoaded="usageLoaded"
           :cpuUsageChartData="cpuUsageChartData"
@@ -18,22 +18,26 @@
         />
         <IndividualCharts
           :gpuNames="gpuNames"
+          :cpuNames="cpuNames"
+          :memoryNames="memoryNames"
           :selectedGpuTemps="selectedGpuTemps"
+          @update:selectedGpuTemps="val => selectedGpuTemps = val"
           :gpuTempsChartData="gpuTempsChartData"
           :gpuTempLineOptions="gpuTempLineOptions"
           :selectedGpu="selectedGpu"
+          @update:selectedGpu="val => selectedGpu = val"
           :gpuDetailChartData="gpuDetailChartData"
           :gpuLineOptions="gpuLineOptions"
-          :cpuNames="cpuNames"
           :selectedCpu="selectedCpu"
+          @update:selectedCpu="val => selectedCpu = val"
           :cpuDetailChartData="cpuDetailChartData"
           :cpuLineOptions="cpuLineOptions"
-          :memoryNames="memoryNames"
           :selectedMemory="selectedMemory"
+          @update:selectedMemory="val => selectedMemory = val"
           :memoryDetailChartData="memoryDetailChartData"
           :memoryLineOptions="memoryLineOptions"
         />
-        <UserRankTables :userRank="userRank"/>
+        <UserRankTables :userRank="userRank" />
       </v-card-text>
     </v-card>
   </v-container>
@@ -47,7 +51,6 @@ import TotalUsageCharts from '@/components/reports/TotalUsageCharts.vue'
 import IndividualCharts from '@/components/reports/IndividualCharts.vue'
 import UserRankTables from '@/components/reports/UserRankTables.vue'
 
-// ----- 상태 선언
 const sysinfo = ref({})
 const totalUsage = ref({ dates: [], gpu: [], cpu: [], memory: [] })
 const usageLoaded = ref(false)
@@ -62,22 +65,19 @@ const gpuDetail = ref({ dates: [], values: [] })
 const cpuDetail = ref({ dates: [], values: [] })
 const memoryDetail = ref({ dates: [], values: [] })
 const userRank = ref({ usage: [], idle: [] })
-const gpuTempSeries = ref({}) // { gpu_name: {dates:[], temps:[]} ... }
+const gpuTempSeries = ref({})
 
-// 색상 팔레트
 function getColor(idx) {
   const colors = [
     "#e53935", "#43a047", "#fbc02d", "#1e88e5", "#8e24aa", "#00acc1", "#fb8c00", "#d81b60", "#3949ab", "#388e3c"
   ]
   return colors[idx % colors.length]
 }
-
 const lineOptionsBase = {
   responsive: true,
   plugins: { legend: { display: true } },
   scales: { y: { beginAtZero: true } }
 }
-
 const gpuLineOptions = computed(() => ({
   ...lineOptionsBase,
   plugins: {
@@ -137,8 +137,6 @@ const gpuTempLineOptions = {
     }
   }
 }
-
-// ----- API 호출
 async function fetchAll() {
   sysinfo.value = (await axios.get('http://127.0.0.1:5000/api/report/sysinfo')).data
   const usage = (await axios.get('http://127.0.0.1:5000/api/report/total_usage')).data
@@ -149,7 +147,6 @@ async function fetchAll() {
   fetchIndividualDetails()
 }
 onMounted(fetchAll)
-
 async function fetchStatus() {
   const status = (await axios.get('http://127.0.0.1:5000/api/report/status')).data
   gpuNames.value = status.gpu_names
@@ -175,8 +172,6 @@ async function fetchIndividualDetails() {
 watch(selectedGpu, fetchIndividualDetails)
 watch(selectedCpu, fetchIndividualDetails)
 watch(selectedMemory, fetchIndividualDetails)
-
-// GPU 온도 여러개 토글!
 watch(selectedGpuTemps, async (gpus) => {
   for (const gpu of gpus) {
     if (!gpuTempSeries.value[gpu]) {
@@ -185,7 +180,6 @@ watch(selectedGpuTemps, async (gpus) => {
     }
   }
 }, { immediate: true })
-
 const gpuTempsChartData = computed(() => {
   if (!selectedGpuTemps.value.length) return null
   const datasets = selectedGpuTemps.value.map((gpu, i) => {
@@ -204,7 +198,6 @@ const gpuTempsChartData = computed(() => {
   }).filter(Boolean)
   return { labels: gpuTempSeries.value[selectedGpuTemps.value[0]]?.dates ?? [], datasets }
 })
-
 const gpuUsageChartData = computed(() => ({
   labels: totalUsage.value.dates,
   datasets: [

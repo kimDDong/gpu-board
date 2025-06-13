@@ -60,7 +60,6 @@
     </v-col>
   </v-row>
 </template>
-
 <script setup>
 defineProps({
   sysinfo: { type: Object, required: true }

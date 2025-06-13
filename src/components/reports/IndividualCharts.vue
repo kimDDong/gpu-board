@@ -28,7 +28,7 @@
       </v-card>
     </v-col>
   </v-row>
-  <!-- GPU 개별 사용량(1줄), CPU/Memory는 2col -->
+  <!-- GPU 개별 사용량 -->
   <v-row>
     <v-col cols="12">
       <v-card class="pa-3 mb-2" style="border:1.5px solid #e0e0e0;">
@@ -94,10 +94,21 @@
 
 <script setup>
 import LineChart from '@/components/resources/LineChart.vue'
-const props = defineProps([
-  'gpuNames', 'selectedGpuTemps', 'gpuTempsChartData', 'gpuTempLineOptions',
-  'selectedGpu', 'gpuDetailChartData', 'gpuLineOptions',
-  'cpuNames', 'selectedCpu', 'cpuDetailChartData', 'cpuLineOptions',
-  'memoryNames', 'selectedMemory', 'memoryDetailChartData', 'memoryLineOptions'
-])
+defineProps({
+  gpuNames: Array,
+  selectedGpuTemps: Array,
+  gpuTempsChartData: Object,
+  gpuTempLineOptions: Object,
+  selectedGpu: String,
+  gpuDetailChartData: Object,
+  gpuLineOptions: Object,
+  cpuNames: Array,
+  selectedCpu: String,
+  cpuDetailChartData: Object,
+  cpuLineOptions: Object,
+  memoryNames: Array,
+  selectedMemory: String,
+  memoryDetailChartData: Object,
+  memoryLineOptions: Object
+})
 </script>
