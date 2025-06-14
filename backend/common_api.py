@@ -5,6 +5,81 @@ import math
 
 app = Blueprint('common_api', __name__)
 
+
+@app.route('/api/simple/1', methods=['GET'])
+def simple1():
+    start_param = request.args.get('start')
+    end_param = request.args.get('end')
+    return jsonify({"value": random.randint(0, 100)})
+
+@app.route('/api/simple/2', methods=['GET'])
+def simple2():
+    start_param = request.args.get('start')
+    end_param = request.args.get('end')
+    print(start_param)
+    return jsonify({"value": [start_param, end_param]})
+
+# --- API ---
+'''
+url : http://localhost:8000/api/chartjs/multi?start=20250101&end=20250330
+JSON :
+[
+    {"timestamp": ... , "datas": [{"id": 0,"value": 0}, ... ]},
+    {"timestamp": ... , "datas": [{"id": 0,"value": 0}, ... ]},
+    ...
+]
+'''
+@app.route('/api/chartjs/multi', methods=['GET'])
+def multi_chart_js():
+    start_param = request.args.get('start')
+    end_param = request.args.get('end')
+
+    if not start_param or not end_param:
+        return jsonify({"error": "Missing 'start' or 'end' query parameters."}), 400
+
+    try:
+        start_date_req = datetime.strptime(start_param, "%Y%m%d")
+        end_date_req = datetime.strptime(end_param, "%Y%m%d")
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYYMMDD."}), 400
+    
+    # 미리 생성된 데이터에서 필터링 및 샘플링
+    sampled_multi_data = get_sampled_data(PRE_GENERATED_MULTI_DATA, start_date_req, end_date_req)
+    return jsonify(sampled_multi_data)
+
+'''
+url : http://localhost:8000/api/chartjs/single?start=20250101&end=20250330
+JSON :
+[
+    {"timestamp": ... , "datas": "value": 0 },
+    {"timestamp": ... , "datas": "value": 0 },
+    ...
+]
+'''
+@app.route('/api/chartjs/single', methods=['GET'])
+def single_chart_js():
+    start_param = request.args.get('start')
+    end_param = request.args.get('end')
+
+    if not start_param or not end_param:
+        return jsonify({"error": "Missing 'start' or 'end' query parameters."}), 400
+
+    try:
+        start_date_req = datetime.strptime(start_param, "%Y%m%d")
+        end_date_req = datetime.strptime(end_param, "%Y%m%d")
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYYMMDD."}), 400
+
+    # 미리 생성된 데이터에서 필터링 및 샘플링
+    sampled_single_data = get_sampled_data(PRE_GENERATED_SINGLE_DATA, start_date_req, end_date_req)
+    return jsonify(sampled_single_data)
+
+
+
+
+# ----------------------------------------------------------------------
+
+
 # --- 전역 변수: 미리 생성된 데이터 저장 ---
 PRE_GENERATED_MULTI_DATA = []
 PRE_GENERATED_SINGLE_DATA = []
@@ -145,185 +220,3 @@ def get_sampled_data(full_data, start_date_req, end_date_req, max_samples=500):
 
 # --- Flask 앱 시작 시 초기 데이터 생성 ---
 generate_initial_data()
-
-# --- API ---
-'''
-url : http://localhost:8000/api/chartjs/multi?start=20250101&end=20250330
-JSON :
-[
-    {"timestamp": ... , "datas": [{"id": 0,"value": 0}, ... ]},
-    {"timestamp": ... , "datas": [{"id": 0,"value": 0}, ... ]},
-    ...
-]
-'''
-@app.route('/api/chartjs/multi', methods=['GET'])
-def multi_chartjs_dummy():
-    start_param = request.args.get('start')
-    end_param = request.args.get('end')
-
-    if not start_param or not end_param:
-        return jsonify({"error": "Missing 'start' or 'end' query parameters."}), 400
-
-    try:
-        start_date_req = datetime.strptime(start_param, "%Y%m%d")
-        end_date_req = datetime.strptime(end_param, "%Y%m%d")
-    except ValueError:
-        return jsonify({"error": "Invalid date format. Use YYYYMMDD."}), 400
-    
-    # 미리 생성된 데이터에서 필터링 및 샘플링
-    sampled_multi_data = get_sampled_data(PRE_GENERATED_MULTI_DATA, start_date_req, end_date_req)
-    return jsonify(sampled_multi_data)
-
-'''
-url : http://localhost:8000/api/chartjs/single?start=20250101&end=20250330
-JSON :
-[
-    {"timestamp": ... , "datas": "value": 0 },
-    {"timestamp": ... , "datas": "value": 0 },
-    ...
-]
-'''
-@app.route('/api/chartjs/single', methods=['GET'])
-def single_chartjs_dummy():
-    start_param = request.args.get('start')
-    end_param = request.args.get('end')
-
-    if not start_param or not end_param:
-        return jsonify({"error": "Missing 'start' or 'end' query parameters."}), 400
-
-    try:
-        start_date_req = datetime.strptime(start_param, "%Y%m%d")
-        end_date_req = datetime.strptime(end_param, "%Y%m%d")
-    except ValueError:
-        return jsonify({"error": "Invalid date format. Use YYYYMMDD."}), 400
-
-    # 미리 생성된 데이터에서 필터링 및 샘플링
-    sampled_single_data = get_sampled_data(PRE_GENERATED_SINGLE_DATA, start_date_req, end_date_req)
-    return jsonify(sampled_single_data)
-
-
-
-# @app.route('/api/chartjs/multi', methods=['GET'])
-# def multi_chartjs_dummy():
-#     multi_num = 6 # GPU 개수
-#     start_param = request.args.get('start')
-#     end_param = request.args.get('end')
-
-#     if not start_param or not end_param:
-#         return jsonify({"error": "Missing 'start' or 'end' query parameters."}), 400
-
-#     try:
-#         start = datetime.strptime(start_param, "%Y%m%d")
-#         end = datetime.strptime(end_param, "%Y%m%d")
-#     except ValueError:
-#         return jsonify({"error": "Invalid date format. Use YYYYMMDD."}), 400
-
-#     samples = 500
-#     total_secs = (end - start).total_seconds()
-    
-#     if total_secs <= 0:
-#         return jsonify({"error": "시작 날짜는 종료 날짜보다 빨라야 합니다."}), 400
-    
-#     interval_secs = max(60, total_secs / (samples - 1)) # 최소 1분 간격
-#     interval = timedelta(seconds=interval_secs)
-
-#     # 각 GPU별 현재 사용률 상태를 추적하기 위한 딕셔너리
-#     # 초기 사용률을 5~20% 사이로 설정
-#     gpu_current_usages = {i: random.uniform(5, 20) for i in range(multi_num)}
-#     # 각 GPU별 스파이크 지속 남은 횟수 (0이면 스파이크 아님)
-#     gpu_spike_duration_left = {i: 0 for i in range(multi_num)}
-
-#     data_series = []
-#     current_timestamp = start
-#     for i in range(samples):
-#         if current_timestamp > end:
-#             break
-        
-#         timestamp_str = current_timestamp.isoformat(timespec='seconds') + 'Z'
-#         gpu_data_list = []
-
-#         for idx in range(multi_num):
-#             # 1. 스파이크 지속 중인 경우
-#             if gpu_spike_duration_left[idx] > 0:
-#                 # 스파이크가 유지되는 동안에도 약간의 변동을 줌 (70-95% 범위)
-#                 change = random.uniform(-2, 2) # 스파이크 중에도 약간의 흔들림
-#                 usage = gpu_current_usages[idx] + change
-#                 usage = max(70, min(95, usage)) # 스파이크 범위 내에서 제한
-#                 gpu_spike_duration_left[idx] -= 1
-#             # 2. 새로운 스파이크 발생 여부 (낮은 확률, 예: 1.5%)
-#             elif random.random() < 0.015: # 1.5% 확률로 스파이크 발생 (빈도 조정)
-#                 usage = random.uniform(70, 95) # 70~95% 고사용 스파이크 시작점
-#                 # 스파이크 지속 기간을 3~7회로 늘림 (값 조정 가능)
-#                 gpu_spike_duration_left[idx] = random.randint(3, 7) 
-#             # 3. 평상시 (저사용 구간)
-#             else:
-#                 # 이전 사용률에서 -2 ~ +2% 범위 내에서 랜덤 변화
-#                 change = random.uniform(-2, 2) 
-#                 usage = gpu_current_usages[idx] + change
-#                 # 사용률을 5-20% 범위 내로 제한하여 평상시에는 낮은 구간에서만 움직이도록 함
-#                 usage = max(5, min(20, usage))
-
-#             gpu_current_usages[idx] = usage # 현재 사용률 업데이트
-#             gpu_data_list.append({"id": idx, "value": int(usage)}) # 'value' 필드 사용
-
-#         data_series.append({
-#             "timestamp": timestamp_str,
-#             "datas": gpu_data_list # 'datas' 필드 사용
-#         })
-        
-#         current_timestamp += interval
-#     return jsonify(data_series)
-
-
-# # --- CHARTJS_SINGLE용 Mock API (이전과 동일, 참고용) ---
-# @app.route('/api/chartjs/single', methods=['GET'])
-# def single_chartjs_dummy():
-#     start_param = request.args.get('start')
-#     end_param = request.args.get('end')
-
-#     if not start_param or not end_param:
-#         return jsonify({"error": "Missing 'start' or 'end' query parameters."}), 400
-
-#     try:
-#         start = datetime.strptime(start_param, "%Y%m%d")
-#         end = datetime.strptime(end_param, "%Y%m%d")
-#     except ValueError:
-#         return jsonify({"error": "Invalid date format. Use YYYYMMDD."}), 400
-
-#     samples = 500
-#     total_secs = (end - start).total_seconds()
-    
-#     if total_secs <= 0:
-#         return jsonify({"error": "시작 날짜는 종료 날짜보다 빨라야 합니다."}), 400
-
-#     interval_secs = max(60, total_secs / (samples - 1))
-#     interval = timedelta(seconds=interval_secs)
-
-#     current_value = random.uniform(5, 20)
-#     spike_left = 0
-
-#     data_series = []
-#     current_timestamp = start
-#     for i in range(samples):
-#         if current_timestamp > end:
-#             break
-        
-#         if spike_left > 0:
-#             usage = random.uniform(70, 95)
-#             spike_left -= 1
-#         elif random.random() < 0.01:
-#             usage = random.uniform(70, 95)
-#             spike_left = random.randint(1, 2)
-#         else:
-#             delta = random.uniform(-2, 2)
-#             usage = min(20, max(5, current_value + delta))
-        
-#         current_value = usage
-
-#         data_series.append({
-#             "timestamp": current_timestamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
-#             "value": int(usage)
-#         })
-        
-#         current_timestamp += interval
-#     return jsonify(data_series)

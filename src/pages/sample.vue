@@ -31,8 +31,22 @@
 
     <v-row>
       <v-col>
-        <!-- selectedStartDate의 값을 직접 YYYYMMDD로 변환하여 전달 -->
-        <CHARTJS_MULTI :startDate="selectedStartDate ? selectedStartDate.replace(/-/g, '') : ''"
+        <v-card-text class="py-4">
+          <span style="font-size: 200%;">
+            README: 이 페이지에 있는 컴포넌트 구현 참고해서 각자 알맞은 리포트 화면 구현하면 됩니다.
+            컴포넌트는 src/components/common에 있고, 백엔드는 common_api.py 입니다.
+          </span>
+        </v-card-text>
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col>
+        <SIMPLE_UPDATE_1 :startDate="selectedStartDate ? selectedStartDate.replace(/-/g, '') : ''"
+          :endDate="selectedEndDate ? selectedEndDate.replace(/-/g, '') : ''" />
+      </v-col>
+      <v-col>
+        <SIMPLE_UPDATE_2 :startDate="selectedStartDate ? selectedStartDate.replace(/-/g, '') : ''"
           :endDate="selectedEndDate ? selectedEndDate.replace(/-/g, '') : ''" />
       </v-col>
     </v-row>
@@ -40,17 +54,28 @@
     <v-row>
       <v-col>
         <!-- selectedStartDate의 값을 직접 YYYYMMDD로 변환하여 전달 -->
-        <CHARTJS_SINGLE :startDate="selectedStartDate ? selectedStartDate.replace(/-/g, '') : ''"
+        <MULTI_CHART_JS :startDate="selectedStartDate ? selectedStartDate.replace(/-/g, '') : ''"
           :endDate="selectedEndDate ? selectedEndDate.replace(/-/g, '') : ''" />
       </v-col>
     </v-row>
+
+    <v-row>
+      <v-col>
+        <!-- selectedStartDate의 값을 직접 YYYYMMDD로 변환하여 전달 -->
+        <SINGLE_CHART_JS :startDate="selectedStartDate ? selectedStartDate.replace(/-/g, '') : ''"
+          :endDate="selectedEndDate ? selectedEndDate.replace(/-/g, '') : ''" />
+      </v-col>
+    </v-row>
+
   </v-container>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-import CHARTJS_MULTI from '@/components/common/CHARTJS_MULTI.vue'; // 실제 경로에 맞게 수정
-import CHARTJS_SINGLE from '@/components/common/CHARTJS_SINGLE.vue';
+import MULTI_CHART_JS from '@/components/common/MULTI_CHART_JS.vue'; // 실제 경로에 맞게 수정
+import SINGLE_CHART_JS from '@/components/common/SINGLE_CHART_JS.vue';
+import SIMPLE_UPDATE_1 from '@/components/common/SIMPLE_UPDATE_1.vue';
+import SIMPLE_UPDATE_2 from '@/components/common/SIMPLE_UPDATE_2.vue';
 
 const selectedStartDate = ref('2025-01-01');
 const selectedEndDate = ref('2025-01-31');

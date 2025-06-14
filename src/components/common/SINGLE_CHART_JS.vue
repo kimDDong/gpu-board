@@ -1,7 +1,9 @@
 <template>
-  <div class="chart-wrapper">
-    <canvas ref="mulitChartCanvas"></canvas>
-  </div>
+  <v-card height="100%" elevation="2" class="pa-4 d-flex flex-column align-center justify-center">
+    <div class="chart-wrapper">
+      <canvas ref="singleChartCanvas"></canvas>
+    </div>
+  </v-card>
 </template>
 
 <script setup>
@@ -25,42 +27,25 @@ const props = defineProps({
 
 Chart.register(...registerables);
 
-const API_URL = 'http://localhost:8000/api/chartjs/multi'
-const MULTI_SERIES = ref([]);
+const API_URL = 'http://localhost:8000/api/chartjs/single'; // API 엔드포인트 변경
+const SINGLE_SERIES = ref([]); // 단일 시리즈 데이터를 저장할 ref
 
-const mulitChartCanvas = ref(null);
-const chartInstance = ref(null);
+const singleChartCanvas = ref(null); // canvas 엘리먼트의 참조
+const chartInstance = ref(null);      // Chart.js 인스턴스
 
 async function fetch() {
   try {
     const res = await axios.get(API_URL + `?start=${props.startDate}&end=${props.endDate}`);
-    MULTI_SERIES.value = res.data;
+    SINGLE_SERIES.value = res.data;
   } catch (e) {
-    MULTI_SERIES.value = []; // 에러 발생 시 데이터 초기화
+    SINGLE_SERIES.value = []; // 에러 발생 시 데이터 초기화
   }
 }
-
-// --- 각 선에 다른 색상을 할당하기 위한 헬퍼 함수 ---
-const getLineColor = (index) => {
-  const colors = [
-    'rgb(255, 99, 132)',  // Red
-    'rgb(54, 162, 235)',  // Blue
-    'rgb(255, 206, 86)',  // Yellow
-    'rgb(75, 192, 192)',  // Green
-    'rgb(153, 102, 255)', // Purple
-    'rgb(255, 159, 64)',  // Orange
-    'rgb(200, 200, 200)', // Grey
-    'rgb(100, 100, 255)', // Light Blue
-    'rgb(128, 0, 0)',     // Maroon
-    'rgb(0, 128, 128)'    // Teal
-  ];
-  return colors[index % colors.length]; // GPU 인덱스에 따라 색상 순환
-};
 
 // Chart.js를 사용하여 차트를 그리는 함수
 const renderChartJS = () => {
 
-  if (!MULTI_SERIES.value || MULTI_SERIES.value.length === 0 || !mulitChartCanvas.value) {
+  if (!SINGLE_SERIES.value || SINGLE_SERIES.value.length === 0 || !singleChartCanvas.value) {
     if (chartInstance.value) {
       chartInstance.value.destroy();
       chartInstance.value = null;
@@ -68,45 +53,40 @@ const renderChartJS = () => {
     return;
   }
 
-  // 데이터셋 구성
-  const labels = MULTI_SERIES.value.map(dataPoint => dataPoint.timestamp); // Chart.js Time Scale이 ISO 문자열 파싱
-  const ids = new Set(); // 고유 ID 수집
+  // 데이터셋 구성 (단일 시리즈)
+  const labels = SINGLE_SERIES.value.map(dataPoint => dataPoint.timestamp);
 
-  MULTI_SERIES.value.forEach(dataPoint => {
-    dataPoint.datas.forEach(gpu => ids.add(gpu.id));
-  });
-
-  const sortedGpuIds = Array.from(ids).sort((a, b) => a - b);
-  const datasets = sortedGpuIds.map(gpuId => ({
-    label: `ITEM ${gpuId}(클릭,토글)`,
-    data: MULTI_SERIES.value.map(dataPoint => {
-      const gpuEntry = dataPoint.datas.find(gpu => gpu.id === gpuId);
-      return gpuEntry ? gpuEntry.value : null; // 데이터 없으면 null
-    }),
-    borderColor: getLineColor(gpuId),
-    borderWidth: 1,
+  const datasets = [{
+    label: props.chartTitle, // 차트 제목을 그대로 라벨로 사용하거나 다른 라벨 prop을 만들 수 있음
+    data: SINGLE_SERIES.value.map(dataPoint => dataPoint.value), // 'value' 필드 사용
+    borderColor: 'rgb(54, 162, 235)', // 단일 라인이므로 고정 색상
+    borderWidth: 1, // 선 두께를 얇게
     tension: 0.1,
     fill: false,
-    pointRadius: 0, // <-- 이 부분 추가: 포인트 반지름을 0으로 설정
-    pointHitRadius: 0, // <-- 이 부분 추가: 마우스 오버 시 감지 영역도 0으로 설정 (선택 사항)
-  }));
+    pointRadius: 0, // 포인트 제거
+    pointHitRadius: 0, // 마우스 오버 시 감지 영역 제거
+  }];
 
   // 캔버스 컨텍스트 가져오기 및 차트 인스턴스 생성/업데이트
-  const ctx = mulitChartCanvas.value.getContext('2d');
+  const ctx = singleChartCanvas.value.getContext('2d');
   if (chartInstance.value) {
     chartInstance.value.destroy(); // 기존 차트 인스턴스 파괴
   }
 
-  chartInstance.value = new Chart(ctx, { // ChartJS 대신 Chart 사용
+  chartInstance.value = new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets }, // 간결한 객체 리터럴
+    data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      elements: { // 전역으로 선 두께와 포인트 제거 설정
+        line: { borderWidth: 0.5 },
+        point: { radius: 0, hitRadius: 0 }
+      },
       plugins: {
-        title: { display: true, text: 'MULTI-CHART-JS', font: { size: 16 } },
+        title: { display: true, text: 'SINGLE_CHART_JS', font: { size: 16 } },
         tooltip: { mode: 'index', intersect: false },
-        legend: { display: true }, // Chart.js 기본 범례 사용
+        legend: { display: false }, // 단일 라인이므로 범례는 숨김
       },
       scales: {
         x: {
@@ -144,27 +124,25 @@ watch([() => props.startDate, () => props.endDate], async () => {
   renderChartJS();
 });
 
-// 컴포넌트가 DOM에 마운트된 후 실행될 로직
+// 컴포넌트 마운트 시 초기 데이터 로드 및 차트 렌더링
 onMounted(async () => {
-  await fetch();
-  renderChartJS();
+  await fetch(); // API에서 시계열 데이터 받아오기
+  renderChartJS(); // 데이터를 성공적으로 받아온 후 차트 그리기
 });
 
-// 컴포넌트가 파괴되기 전에 실행될 로직
+// 컴포넌트 파괴 시 차트 인스턴스 정리
 onBeforeUnmount(() => {
   if (chartInstance.value) {
-    chartInstance.value.destroy(); // Chart.js 인스턴스 정리
+    chartInstance.value.destroy();
   }
 });
-
 </script>
-
 
 <style scoped>
 .chart-wrapper {
   width: 100%;
-  height: 300px;
-  /* 차트 높이 조정 */
+  height: 350px;
+  /* 싱글 차트이므로 높이를 줄여봤습니다. 필요시 조정 */
   position: relative;
 }
 
