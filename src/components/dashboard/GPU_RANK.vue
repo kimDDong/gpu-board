@@ -10,7 +10,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(user, idx) in users" :key="user.user">
+        <tr v-for="(user, idx) in USERS_GPU" :key="user.user">
           <td>{{ idx + 1 }}</td>
           <td>
             <router-link :to="`/user/${user.user}`">{{ user.user }}</router-link>
@@ -21,7 +21,7 @@
             </v-progress-linear>
           </td>
         </tr>
-        <tr v-if="!users.length">
+        <tr v-if="!USERS_GPU.length">
           <td colspan="3"><v-skeleton-loader type="table-row" /></td>
         </tr>
       </tbody>
@@ -38,7 +38,7 @@ const API_URL = 'http://localhost:8000/api/gpu_user_rank'
 const WARNING_LEVEL = 70
 const DANGER_LEVEL = 90
 
-const users = ref([])
+const USERS_GPU = ref([])
 let timer = null
 
 function getColor(val, color) {
@@ -50,8 +50,8 @@ function getColor(val, color) {
 async function fetch() {
   try {
     const res = await axios.get(API_URL)
-    users.value = res.data.users.sort((a, b) => b.value - a.value).slice(0, 5)
-  } catch { users.value = [] }
+    USERS_GPU.value = res.data.users.sort((a, b) => b.value - a.value).slice(0, 5)
+  } catch { USERS_GPU.value = [] }
 }
 
 onMounted(() => {

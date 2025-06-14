@@ -130,11 +130,11 @@ src
 - 마우스 커서를 `hover` 하면 정확한 시간에 따른 사용률 수치 확인 할수 있는 Tooltip이 나타납니다.
 
 ### 주요 데이터 바인딩 
-- `const CPU_USAGE = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
+- `const smoothieCanvas = ...` : API(GET) 에서 받아온 데이터 시리즈를 이용해 차트를 표시
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
-### JSON 형식 (`CPU_USAGE`)
+### JSON 형식 ()
 ```
 { value: 0 }
 ```
@@ -150,11 +150,11 @@ src
 - 마우스 커서를 `hover` 하면 정확한 시간에 따른 개별 사용률 수치를 확인 할수 있는 Tooltip이 나타납니다.
 
 ### 주요 데이터 바인딩 
-- `const GPUS_USAGE = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
+- `const smoothieCanvas = ...` : API(GET) 에서 받아온 데이터 시리즈를 이용해 차트를 표시
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
-### JSON 형식 (`GPUS_USAGE`)
+### JSON 형식
 ```
 {
     gpus = [
@@ -179,11 +179,11 @@ src
 
 ### 주요 데이터 바인딩 
 - `const {VARS} = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
-    - `{VARS}` = { `USER_CPU` | `USER_GUP` | `USER_MEM` }
+    - `{VARS}` = { `USERS_CPU` | `USERS_GPU` | `USERS_MEM` }
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
-### JSON 형식 (`USER_CPU` | `USER_GUP` | `USER_MEM` 공통)
+### JSON 형식 (`USERS_CPU` | `USERS_GPU` | `USERS_MEM` 공통)
 ```
 {
     users = [
@@ -204,11 +204,11 @@ src
 - 각 사용자명에는 클릭시 사용자 리포트로 리다이렉션 하는 링크가 달려있습니다.
 
 ### 주요 데이터 바인딩 
-- `const USER_IDLE = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
+- `const USERS_IDLE = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
-### JSON 형식 (`USER_IDLE`)
+### JSON 형식 (`USERS_IDLE`)
 ```
 {
     users = [

@@ -3,7 +3,7 @@
     <div class="text-caption mb-2 font-weight-bold">전체 자원 Idle 시간</div>
     <v-icon size="36" color="grey">mdi-timer-sand</v-icon>
     <div class="mt-1 text-h4">
-      <template v-if="idletime !== null">{{ idletime }}</template>
+      <template v-if="IDLETIME !== null">{{ IDLETIME }}</template>
       <template v-else>...</template>
     </div>
     <div class="caption text-grey">누적(분)</div>
@@ -16,16 +16,16 @@ import axios from 'axios'
 
 const API_INTERVAL = 1000
 const API_URL = 'http://localhost:8000/api/system/idletime'
+const IDLETIME = ref(null)
 
-const idletime = ref(null)
 let timer = null
 
 async function fetch() {
   try {
     const res = await axios.get(API_URL)
-    idletime.value = res.data.value
+    IDLETIME.value = res.data.value
   } catch (e) {
-    idletime.value = null
+    IDLETIME.value = null
   }
 }
 
