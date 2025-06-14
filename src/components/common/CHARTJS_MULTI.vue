@@ -78,7 +78,7 @@ const renderChartJS = () => {
 
   const sortedGpuIds = Array.from(ids).sort((a, b) => a - b);
   const datasets = sortedGpuIds.map(gpuId => ({
-    label: `ITEM ${gpuId}`,
+    label: `ITEM ${gpuId}(클릭,토글)`,
     data: MULTI_SERIES.value.map(dataPoint => {
       const gpuEntry = dataPoint.datas.find(gpu => gpu.id === gpuId);
       return gpuEntry ? gpuEntry.value : null; // 데이터 없으면 null
