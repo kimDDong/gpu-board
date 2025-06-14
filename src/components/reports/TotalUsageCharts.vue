@@ -25,12 +25,12 @@
   </v-row>
   <v-row class="mb-6">
     <v-col cols="12">
-      <v-card class="pa-4" style="border:2.5px solid #8e24aa;">
+      <v-card class="pa-4" style="border:2.5px solid #e0e0e0;">
         <div style="min-height:230px;">
           <LineChart v-if="usageLoaded"
             :chart-data="gpuUsageChartData"
             :options="gpuLineOptions"
-            title="GPU 전체 사용량 (크게 표시)" />
+            title="GPU 전체 사용량" />
           <div v-else>Loading...</div>
         </div>
       </v-card>
