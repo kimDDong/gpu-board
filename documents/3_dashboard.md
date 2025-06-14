@@ -1,30 +1,10 @@
-# 3. 대시보드
-
-![alt text](asset/dashboard/1-1.png)
-
-## 3.1 화면 구성 및 컴포넌트
-![alt text](asset/dashboard/1-2.png)
-
-1. `KPI_CPU.vue` : 전체 CPU 사용률을 간략하게 표시(실시간)
-2. `KPI_GPU.vue` : 전체 GPU 사용률을 간략하게 표시(실시간)
-3. `KPI_MEM.vue` : 전체 MEM 사용률을 간략하게 표시(실시간)
-4. `KPI_IDLE.vue` : 전체 누적 IDEL 시간을 간략하게 표시(실시간)
-5. `KPI_INFO.vue` : 시스템의 HW 정보 간략하게 표시
-6. `CPU_BARS.vue` : 개별 CPU의 상세 사용률을 막대 그래프 형태 표시 (실시간)
-7. `GPU_BARS.vue` : 개별 GPU의 상세 사용률을 바 형태 표시 (실시간)
-8. `GPU_TEMP.vue` : 개별 GPU의 상세 사용률을 바 형태 표시 (실시간)
-9. `CPU_CHART.vue` : 시간에 따른 전체 CPU 사용률을 차트 형태 표시 (실시간, 누적)
-10. `GPU_CHART.vue` : 시간에 따른 개별 GPU 사용률을 차트 형태 표시 (실시간, 누적)
-11. `CPU_RANK.vue` : CPU 사용률이 높은 상위 5명의 사용자를 목록으로 표시 (실시간)
-12. `GPU_RANK.vue` : GPU 사용률이 높은 상위 5명의 사용자를 목록으로 표시 (실시간)
-13. `MEM_RANK.vue` : MEM 사용률이 높은 상위 5명의 사용자를 목록으로 표시 (실시간)
-14. `IDLE_RANK.vue` : IDLE 시간이 가장 긴 상위 5명의 사용자를 목록으로 표시 (실시간)
+# 3. 대시보드 구성 및 컴포넌트
 
 대시보드의 `XMLHttpRequests` 기반의 실시간 모니터링 기능은 Promise 기반 HTTP 클라이언트 라이브러리 Axios를 이용해 구현되었습니다.
 
 (참고: [Axios]( https://axios-http.com/kr/docs/intro))
 
-## 3.2 관련 파일 구성
+## 3.1 관련 파일 구성
 ```
 src
 ├── components
@@ -59,7 +39,7 @@ src
     - 80% 이상 : 주황색 (주의) 
 
 ### 주요 데이터 바인딩 
-- `const {VARS} = ...` : API 에서 받아온 데이터(JSON) 저장용
+- `const {VARS} = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
     - `{VARS}` := { `CPU_USAGE` | `GPU_USAGE` | `MEM_USAGE` }
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
@@ -80,7 +60,7 @@ src
 - 값을 불러오면 누적 분을 표시합니다.
 
 ### 주요 데이터 바인딩 
-- `const IDLETIME = ...` : API 에서 받아온 누적 IDLE 시간 저장용(JSON)
+- `const IDLETIME = ...` : API(GET) 에서 받아온 누적 IDLE 시간 저장용(JSON)
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
@@ -99,9 +79,9 @@ src
 - CPU 개수, GPU 개수, 전체 MEM 크기, UPTIME 누적 시간 표시
 
 ### 주요 데이터 바인딩 
-- `const {VARS} = ...` : API 에서 받아온 데이터(JSON) 저장용
+- `const {VARS} = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
     - `{VARS}` = { `CPU_COUNT` | `GPU_COUNT` | `TOTAL_MEM` | `UPTIME` }
-- `const uptime = ...` : API 에서 받아온 누적 Uptime 저장용(JSON)
+- `const uptime = ...` : API(GET) 에서 받아온 누적 Uptime 저장용(JSON)
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL_... = ...` : API 호출 URL 주소
 
@@ -121,7 +101,7 @@ src
     - 80% 또는 80℃ 이상 : 주황색 (주의) 
 
 ### 주요 데이터 바인딩 
-- `const {VARS} = ...` : API 에서 받아온 데이터(JSON) 저장용
+- `const {VARS} = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
     - `{VARS}` = { `CPUS_USAGE` | `GPUS_USAGE` | `GPUS_TEMP` }
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
@@ -150,7 +130,7 @@ src
 - 마우스 커서를 `hover` 하면 정확한 시간에 따른 사용률 수치 확인 할수 있는 Tooltip이 나타납니다.
 
 ### 주요 데이터 바인딩 
-- `const CPU_USAGE = ...` : API 에서 받아온 데이터(JSON) 저장용
+- `const CPU_USAGE = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
@@ -170,7 +150,7 @@ src
 - 마우스 커서를 `hover` 하면 정확한 시간에 따른 개별 사용률 수치를 확인 할수 있는 Tooltip이 나타납니다.
 
 ### 주요 데이터 바인딩 
-- `const GPUS_USAGE = ...` : API 에서 받아온 데이터(JSON) 저장용
+- `const GPUS_USAGE = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
@@ -198,7 +178,7 @@ src
 - 각 사용자명에는 클릭시 사용자 리포트로 리다이렉션 하는 링크가 달려있습니다.
 
 ### 주요 데이터 바인딩 
-- `const {VARS} = ...` : API 에서 받아온 데이터(JSON) 저장용
+- `const {VARS} = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
     - `{VARS}` = { `USER_CPU` | `USER_GUP` | `USER_MEM` }
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
@@ -224,7 +204,7 @@ src
 - 각 사용자명에는 클릭시 사용자 리포트로 리다이렉션 하는 링크가 달려있습니다.
 
 ### 주요 데이터 바인딩 
-- `const USER_IDLE = ...` : API 에서 받아온 데이터(JSON) 저장용
+- `const USER_IDLE = ...` : API(GET) 에서 받아온 데이터(JSON) 저장용
 - `const API_INTERVAL = ...` : API 호출 주기(업데이트 주기)
 - `const API_URL = ...` : API 호출 URL 주소
 
