@@ -26,10 +26,10 @@ def cpu_usage():
     return jsonify({"value": round(value, 1)})
 
 @app.route('/api/gpu/usage')
-def gpu_usage(): return jsonify({"value": random.randint(0, 100)})
+def gpu_usage(): return jsonify({"value": round(random.uniform(20, 100), 1)})
 
 @app.route('/api/mem/usage')
-def mem_util(): return jsonify({"value": random.randint(0, 100)})
+def mem_util(): return jsonify({"value": round(random.uniform(20, 100), 1)})
 
 @app.route('/api/cpu/detail/usage')
 def cpu_usage_detail():
