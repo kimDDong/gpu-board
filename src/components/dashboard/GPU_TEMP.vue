@@ -1,6 +1,6 @@
 <template>
   <v-card height="100%" class="pa-4" elevation="2">
-    <div class="text-caption mb-2 font-weight-bold">GPU 상세 - GPU 별 온도(℃)</div>
+    <div class="text-caption mb-2 font-weight-bold">GPU 온도 상세(℃)</div>
     <v-row>
       <v-col v-for="(gpu, idx) in temps" :key="gpu.id" cols="12" sm="2" md="2">
         <div class="d-flex justify-space-between align-center mb-1 small">
@@ -33,10 +33,11 @@ const temps = ref([]) // [{ id: 0, usage: 12 }, ...]
 let timer = null
 
 function getColor(val, color) {
-  if (val >= WARNING_LEVEL) return 'red'       // 위험(빨강)
-  if (val >= DANGER_LEVEL) return 'orange'   // 주의(주황)
+  if (val >= DANGER_LEVEL) return 'red'       // 위험(빨강)
+  if (val >= WARNING_LEVEL) return 'orange'   // 주의(주황)
   return color //'primary'
 }
+
 
 async function fetch() {
   try {

@@ -30,10 +30,11 @@ const cpus = ref([]) // [{ id: 0, usage: 12 }, ...]
 let timer = null
 
 function getColor(val, color) {
-  if (val >= WARNING_LEVEL) return 'red'       // 위험(빨강)
-  if (val >= DANGER_LEVEL) return 'orange'   // 주의(주황)
+  if (val >= DANGER_LEVEL) return 'red'       // 위험(빨강)
+  if (val >= WARNING_LEVEL) return 'orange'   // 주의(주황)
   return color //'primary'
 }
+
 
 async function fetch() {
   try {

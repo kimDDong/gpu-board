@@ -2,7 +2,7 @@
   <v-card height="100%" elevation="2" class="pa-4 d-flex flex-column align-center justify-center">
     <div class="text-caption mb-2 font-weight-bold">CPU 전체 사용률</div>
     <template v-if="cpu !== null">
-      <v-progress-circular :size="100" :width="10" :model-value="cpu" :color="getColor(cpu.usage, 'primary')">
+      <v-progress-circular :size="100" :width="10" :model-value="cpu" :color="getColor(cpu, 'primary')">
         <span class="text-h6">{{ cpu }}%</span>
       </v-progress-circular>
     </template>
@@ -27,8 +27,8 @@ const cpu = ref(null)
 let timer = null
 
 function getColor(val, color) {
-  if (val >= WARNING_LEVEL) return 'red'       // 위험(빨강)
-  if (val >= DANGER_LEVEL) return 'orange'   // 주의(주황)
+  if (val >= DANGER_LEVEL) return 'red'       // 위험(빨강)
+  if (val >= WARNING_LEVEL) return 'orange'   // 주의(주황)
   return color //'primary'
 }
 
