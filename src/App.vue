@@ -31,7 +31,8 @@ const menuList = [
   { title: '대시보드', path: '/board' },
   { title: '사용자 관리', path: '/users' },
   { title: '시스템 자원 관리', path: '/resources' },
-  { title: '시스템 보고서', path: '/reports' }
+  { title: '시스템 보고서', path: '/reports' },
+  { title: '참고용 샘플', path: '/sample' }
 ]
 
 function navigate(path) {
