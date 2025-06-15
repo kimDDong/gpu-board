@@ -1,19 +1,9 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      v-model="drawer"
-      app
-      :permanent="false"
-      :width="240"
-    >
+    <v-navigation-drawer v-model="drawer" app :permanent="false" :width="240">
       <v-list>
-        <v-list-item
-          v-for="item in menuList"
-          :key="item.path"
-          :title="item.title"
-          @click="navigate(item.path)"
-          :active="isActive(item.path)"
-        />
+        <v-list-item v-for="item in menuList" :key="item.path" :title="item.title" @click="navigate(item.path)"
+          :active="isActive(item.path)" />
       </v-list>
     </v-navigation-drawer>
 
@@ -23,7 +13,7 @@
     </v-app-bar>
 
     <v-main>
-        <router-view />
+      <router-view />
     </v-main>
   </v-app>
 </template>
@@ -38,20 +28,21 @@ const router = useRouter()
 const route = useRoute()
 
 const menuList = [
- { title: '대시보드', path: '/board' },
- { title: '자원 관리', path: '/resources' },
- { title: '사용자 관리', path: '/users' },
- { title: '보고서', path: '/reports' }
+  { title: '대시보드', path: '/board' },
+  { title: '사용자 관리', path: '/users' },
+  { title: '시스템 자원 관리', path: '/resources' },
+  { title: '시스템 보고서', path: '/reports' },
+  { title: '참고용 샘플', path: '/sample' }
 ]
 
 function navigate(path) {
- if (route.path !== path) {
+  if (route.path !== path) {
     router.push(path)
     drawer.value = false // 메뉴 클릭시 닫고 싶으면 이 줄 추가
   }
 }
 
 function isActive(path) {
- return route.path === path
+  return route.path === path
 }
 </script>

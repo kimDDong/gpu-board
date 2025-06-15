@@ -10,7 +10,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(user, idx) in users" :key="user.user">
+        <tr v-for="(user, idx) in USERS_IDLE" :key="user.user">
           <td>{{ idx + 1 }}</td>
           <td>
             <router-link :to="`/user/${user.user}`">{{ user.user }}</router-link>
@@ -20,7 +20,7 @@
             {{ user.value }}
           </td>
         </tr>
-        <tr v-if="!users.length">
+        <tr v-if="!USERS_IDLE.length">
           <td colspan="3"><v-skeleton-loader type="table-row" /></td>
         </tr>
       </tbody>
@@ -33,15 +33,15 @@ import axios from 'axios'
 
 const API_INTERVAL = 1000
 const API_URL = 'http://localhost:8000/api/idle_user_rank'
+const USERS_IDLE = ref([])
 
-const users = ref([])
 let timer = null
 
 async function fetch() {
   try {
     const res = await axios.get(API_URL)
-    users.value = res.data.users.sort((a, b) => b.value - a.value).slice(0, 5)
-  } catch { users.value = [] }
+    USERS_IDLE.value = res.data.users.sort((a, b) => b.value - a.value).slice(0, 5)
+  } catch { USERS_IDLE.value = [] }
 }
 
 onMounted(() => {

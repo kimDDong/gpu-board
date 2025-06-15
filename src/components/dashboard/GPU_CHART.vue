@@ -14,8 +14,8 @@ import axios from 'axios'
 
 const API_INTERVAL = 500
 const API_URL = 'http://localhost:8000/api/gpu/detail/usage'
-
 const smoothieCanvas = ref(null)
+
 let chart = null
 let gpuSeries = []
 let timer
