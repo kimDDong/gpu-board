@@ -220,3 +220,336 @@ def get_sampled_data(full_data, start_date_req, end_date_req, max_samples=500):
 
 # --- Flask 앱 시작 시 초기 데이터 생성 ---
 generate_initial_data()
+
+# ----------------------------------------------------------------------
+
+
+# 인메모리 사용자 데이터 저장소
+# 키: username (문자열), 값: 사용자 데이터 딕셔너리
+users = {}
+next_id_counter = 1 # 사용자 데이터 내부의 'id' 필드를 위한 카운터
+
+# --- 헬퍼 함수 ---
+# datetime 객체를 ISO 8601 형식의 문자열로 변환 (JSON 응답용)
+def format_datetime_for_json(dt_obj):
+    if dt_obj:
+        return dt_obj.isoformat()
+    return None
+
+# 사용 기한에 따라 만료 날짜 계산
+def calculate_expiration_date(created_at, usage_period_days):
+    if created_at and isinstance(usage_period_days, (int, float)):
+        return created_at + timedelta(days=usage_period_days)
+    return None
+    
+# --- 사용자 목록 조회 ---
+@app.route('/api/sample/users', methods=['GET']) # 이 경로는 이전과 동일하게 유지됩니다.
+def get_all_users():
+    all_users_display = []
+    for user_data in users.values(): # users 딕셔너리의 값(사용자 데이터)들만 리스트로 변환
+        user_display = user_data.copy()
+        user_display.pop('password', None) # 보안을 위해 비밀번호는 제외
+        user_display['createdAt'] = format_datetime_for_json(user_display['createdAt'])
+        user_display['expiredAt'] = format_datetime_for_json(user_display['expiredAt'])
+        all_users_display.append(user_display)
+    # ID를 기준으로 정렬 (선택 사항)
+    all_users_display.sort(key=lambda x: x['id']) # 'id' 필드를 기준으로 정렬
+    return jsonify(all_users_display), 200 # 리스트 형태로 반환
+
+
+# --- 사용자 추가 ---
+@app.route('/api/sample/users', methods=['POST'])
+def register_user():
+    global next_id_counter # id 필드 카운터
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "JSON 데이터가 필요합니다."}), 400
+
+    username = data.get('username')
+    password = data.get('password')
+    full_name = data.get('fullName')
+    initial_activation = data.get('initialActivation', True) # 기본값 True
+    usage_period = data.get('usagePeriod', 30) # 기본값 30
+
+    # 필수 필드 유효성 검사
+    if not all([username, password, full_name]):
+        return jsonify({"message": "사용자명, 비밀번호, 전체 이름은 필수입니다."}), 400
+
+    # 사용자명 중복 검사 (users 딕셔너리의 키로 확인)
+    if username in users:
+        return jsonify({"message": "이미 존재하는 사용자명입니다."}), 409 # Conflict
+
+    created_at = datetime.now() # 현재 시간으로 생성 날짜 기록
+    expired_at = calculate_expiration_date(created_at, usage_period) # 사용 기한에 따라 만료 날짜 계산
+
+    # 새 사용자 데이터 생성
+    new_user = {
+        "id": next_id_counter, # 내부 id 필드는 계속 사용
+        "username": username,
+        "password": password,  # 실제에서는 해싱된 비밀번호를 저장해야 합니다.
+        "fullName": full_name,
+        "initialActivation": initial_activation,
+        "usagePeriod": usage_period,
+        "createdAt": created_at, # 생성 날짜 (datetime 객체로 저장)
+        "expiredAt": expired_at, # 만료 날짜 (datetime 객체로 저장)
+    }
+    users[username] = new_user # users 딕셔너리의 키로 username 사용
+    next_id_counter += 1
+
+    print(f"등록된 사용자: {new_user}")
+    # 응답 시에는 datetime 객체를 문자열로 변환하여 전송
+    response_user = new_user.copy()
+    response_user.pop('password', None) # 보안을 위해 비밀번호는 응답에서 제외
+    response_user['createdAt'] = format_datetime_for_json(response_user['createdAt'])
+    response_user['expiredAt'] = format_datetime_for_json(response_user['expiredAt'])
+
+    return jsonify({"message": "사용자 등록 성공", "user": response_user}), 201
+
+# --- 사용자 삭제 API ---
+# user_id 대신 username을 경로 변수로 사용
+@app.route('/api/sample/users/<string:username>', methods=['DELETE'])
+def delete_user(username):
+    if username in users:
+        deleted_user = users.pop(username)
+        print(f"삭제된 사용자: {deleted_user['username']}")
+        return jsonify({"message": f"사용자 '{username}'가 성공적으로 삭제되었습니다."}), 200
+    return jsonify({"message": "사용자를 찾을 수 없습니다."}), 404
+
+# --- 사용자 정보 조회 ---
+# user_id 대신 username을 경로 변수로 사용
+@app.route('/api/sample/users/<string:username>', methods=['GET'])
+def get_user(username):
+    user = users.get(username) # username으로 조회
+    if not user:
+        return jsonify({"message": "사용자를 찾을 수 없습니다."}), 404
+
+    # 보안을 위해 비밀번호는 응답에서 제외합니다.
+    user_display = user.copy()
+    user_display.pop('password', None)
+    # datetime 객체를 문자열로 변환하여 전송
+    user_display['createdAt'] = format_datetime_for_json(user_display['createdAt'])
+    user_display['expiredAt'] = format_datetime_for_json(user_display['expiredAt'])
+    return jsonify(user_display), 200
+
+# --- 사용자 정보 수정 API ---
+# user_id 대신 username을 경로 변수로 사용
+@app.route('/api/sample/users/<string:username>', methods=['PATCH'])
+def update_user(username):
+    user = users.get(username) # username으로 조회
+    if not user:
+        return jsonify({"message": "사용자를 찾을 수 없습니다."}), 404
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"message": "JSON 데이터가 필요합니다."}), 400
+
+    usage_period_changed = False
+    if 'fullName' in data:
+        user['fullName'] = data['fullName']
+    if 'initialActivation' in data:
+        user['initialActivation'] = data['initialActivation']
+    if 'usagePeriod' in data:
+        if isinstance(data['usagePeriod'], (int, float)):
+            user['usagePeriod'] = int(data['usagePeriod'])
+            usage_period_changed = True # 사용 기한이 변경되었음을 표시
+        else:
+            return jsonify({"message": "사용 기한은 숫자여야 합니다."}), 400
+    if 'password' in data and data['password']: # 비밀번호가 전달되었고 비어있지 않으면 업데이트
+        user['password'] = data['password'] # 실제에서는 해싱된 비밀번호를 업데이트해야 합니다.
+
+    # usagePeriod가 변경되었으면 expiredAt을 다시 계산
+    if usage_period_changed:
+        user['expiredAt'] = calculate_expiration_date(user['createdAt'], user['usagePeriod'])
+
+    print(f"업데이트된 사용자: {user}")
+    # 보안을 위해 비밀번호는 응답에서 제외합니다.
+    response_user = user.copy()
+    response_user.pop('password', None)
+    # datetime 객체를 문자열로 변환하여 전송
+    response_user['createdAt'] = format_datetime_for_json(response_user['createdAt'])
+    response_user['expiredAt'] = format_datetime_for_json(response_user['expiredAt'])
+    return jsonify({"message": "사용자 정보가 성공적으로 업데이트되었습니다.", "user": response_user}), 200
+
+# ----------------------------------------------------------------------
+
+# 서버 시작 시 임의의 사용자 20명 생성 함수
+def generate_dummy_users(num_users=20):
+    global next_id_counter
+    
+    # 생성할 사용자명 리스트 (충돌 방지를 위해 무한 루프 대신 리스트로 관리)
+    generated_usernames = []
+
+    for i in range(num_users):
+        # 고유한 사용자명 생성
+        username = f"dummyuser{next_id_counter:02d}" # 예: dummyuser01, dummyuser02
+        # 만약 이미 존재하는 username이라면 다른 방식으로 생성하거나 다음 루프로 넘어갈 수 있습니다.
+        # 여기서는 next_id_counter가 계속 증가하므로 고유함이 보장됩니다.
+        
+        password = "password123" # 테스트용 비밀번호
+        full_name = f"더미 사용자 {next_id_counter}"
+        initial_activation = random.choice([True, False]) # True 또는 False
+        usage_period = random.randint(30, 365) # 30일 ~ 365일 (랜덤)
+
+        # 생성 날짜를 최근 30일 이내의 랜덤 날짜로 설정
+        created_at = datetime.now() - timedelta(days=random.randint(0, 30))
+        expired_at = calculate_expiration_date(created_at, usage_period)
+
+        new_user_data = {
+            "id": next_id_counter,
+            "username": username,
+            "password": password,
+            "fullName": full_name,
+            "initialActivation": initial_activation,
+            "usagePeriod": usage_period,
+            "createdAt": created_at, # 생성 날짜 (datetime 객체)
+            "expiredAt": expired_at, # 만료 날짜 (datetime 객체)
+        }
+        users[username] = new_user_data # username을 키로 사용
+        next_id_counter += 1
+
+    print(f"더미 사용자 생성 완료. 현재 사용자 수: {len(users)}")
+    print(f"다음 등록될 내부 ID: {next_id_counter}")
+
+
+generate_dummy_users(20) # 서버 시작 시 더미 사용자 생성
+
+# ----------------------------------------------------------------------
+
+
+# GPUS = [
+#     {"id": "1", "name": "NVIDIA GeForce RTX 4090"},
+#     {"id": "2", "name": "NVIDIA GeForce RTX 4080"},
+#     {"id": "3", "name": "NVIDIA GeForce RTX 3090"},
+#     {"id": "4", "name": "AMD Radeon RX 7900 XTX"},
+#     {"id": "5", "name": "NVIDIA A100 Tensor Core GPU"},
+#     {"id": "6", "name": "NVIDIA A100 Tensor Core GPU"},
+# ]
+
+# allocated_gpus = {}
+# next_policy_id = 1
+
+# ----------------------------------------------------------------------
+
+
+# # --- 모든 GPU 목록 조회 API ---
+# @app.route('/api/sample/gpus', methods=['GET'])
+# def get_all_gpus():
+#     return jsonify(GPUS), 200
+
+# # --- GPU 할당 정책 관련 API ---
+# @app.route('/api/sample/allocation-policies', methods=['GET'])
+# def get_all_allocation_policies():
+#     policies_display = []
+#     for policy_id, policy_data in allocated_gpus.items():
+#         policy_display = policy_data.copy()
+#         policy_display['createdAt'] = format_datetime_for_json(policy_display['createdAt'])
+#         policy_display['expiredAt'] = format_datetime_for_json(policy_display['expiredAt'])
+#         policies_display.append(policy_display)
+#     policies_display.sort(key=lambda x: x['id'])
+#     return jsonify(policies_display), 200
+
+# @app.route('/api/sample/allocation-policies', methods=['POST'])
+# def add_allocation_policy():
+#     global next_policy_id
+#     data = request.get_json()
+
+#     if not data:
+#         return jsonify({"message": "JSON 데이터가 필요합니다."}), 400
+
+#     username = data.get('username')
+#     gpu_id = data.get('gpuId') # resourceId 대신 gpuId
+#     initial_activation = data.get('initialActivation', True)
+#     expired_at_str = data.get('expiredAt')
+
+#     if not all([username, gpu_id, expired_at_str]):
+#         return jsonify({"message": "사용자명, GPU ID, 만료일은 필수입니다."}), 400
+
+#     user = users.get(username)
+#     if not user:
+#         return jsonify({"message": "사용자를 찾을 수 없습니다."}), 404
+
+#     # 유효한 GPU ID인지 확인
+#     gpu_info = next((gpu for gpu in GPUS if gpu['id'] == gpu_id), None)
+#     if not gpu_info:
+#         return jsonify({"message": "유효하지 않은 GPU ID입니다."}), 404
+
+#     try:
+#         expired_at = datetime.fromisoformat(expired_at_str.replace('Z', '+00:00')).astimezone(timezone.utc)
+#     except ValueError:
+#         return jsonify({"message": "만료일 형식이 올바르지 않습니다. (ISO 8601)"}), 400
+
+#     # 중복 할당 정책 확인 (같은 사용자에게 같은 GPU 할당 방지)
+#     for policy in allocated_gpus.values():
+#         if policy['username'] == username and policy['gpuId'] == gpu_id:
+#             return jsonify({"message": "이미 해당 사용자에게 할당된 GPU입니다."}), 409
+
+#     new_policy = {
+#         "id": next_policy_id, # 정책 고유 ID
+#         "username": username,
+#         "gpuId": gpu_id,
+#         "gpuName": gpu_info['name'], # GPU 모델명 추가
+#         "initialActivation": initial_activation,
+#         "createdAt": datetime.now(timezone.utc), # 할당 생성 시간
+#         "expiredAt": expired_at,
+#     }
+#     allocated_gpus[next_policy_id] = new_policy
+#     next_policy_id += 1
+
+#     print(f"새로운 GPU 할당 정책 추가됨: {new_policy}")
+#     response_policy = new_policy.copy()
+#     response_policy['createdAt'] = format_datetime_for_json(response_policy['createdAt'])
+#     response_policy['expiredAt'] = format_datetime_for_json(response_policy['expiredAt'])
+#     return jsonify({"message": "GPU 할당 정책이 성공적으로 추가되었습니다.", "policy": response_policy}), 201
+
+# # ----------------------------------------------------------------------
+
+# def generate_dummy_allocation_policies(num_policies=5):
+#     global next_policy_id
+#     if not users or not GPUS: # 사용자나 GPU가 없으면 생성 안함
+#         print("더미 정책을 생성할 사용자나 GPU가 없습니다.")
+#         return
+
+#     existing_allocations = set() # (username, gpu_id) 튜플 저장하여 중복 방지
+
+#     for i in range(num_policies):
+#         try:
+#             # 랜덤 사용자 선택
+#             username = random.choice(list(users.keys()))
+#             user = users[username]
+
+#             # 랜덤 GPU 선택
+#             gpu_info = random.choice(GPUS)
+#             gpu_id = gpu_info['id']
+
+#             # 중복 체크
+#             if (username, gpu_id) in existing_allocations:
+#                 continue # 이미 존재하는 할당이면 다음으로
+
+#             created_at = datetime.now(timezone.utc) - timedelta(days=random.randint(0, 30))
+#             expired_at = datetime.now(timezone.utc) + timedelta(days=random.randint(30, 365))
+#             initial_activation = random.choice([True, False])
+
+#             new_policy = {
+#                 "id": next_policy_id,
+#                 "username": username,
+#                 "gpuId": gpu_id,
+#                 "gpuName": gpu_info['name'],
+#                 "initialActivation": initial_activation,
+#                 "createdAt": created_at,
+#                 "expiredAt": expired_at,
+#             }
+#             allocated_gpus[next_policy_id] = new_policy
+#             existing_allocations.add((username, gpu_id))
+#             next_policy_id += 1
+#         except IndexError: # users나 GPUS가 비어있을 경우 (드물지만)
+#             break
+#         except Exception as e:
+#             print(f"더미 정책 생성 중 오류 발생: {e}")
+#             break
+
+#     print(f"{len(allocated_gpus)} 명의 더미 할당 정책이 생성되었습니다.")
+#     print(f"다음 등록될 정책 ID: {next_policy_id}")
+
+# generate_dummy_allocation_policies(10) # 더미 GPU 할당 정책 생성 (10개)
