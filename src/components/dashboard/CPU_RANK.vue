@@ -13,7 +13,7 @@
         <tr v-for="(user, idx) in USERS_CPU" :key="user.user">
           <td>{{ idx + 1 }}</td>
           <td>
-            <router-link :to="`/user/${user.user}`">{{ user.user }}</router-link>
+            <router-link :to="`/user/${user.user}/report`">{{ user.user }}</router-link>
           </td>
           <td>
             <v-progress-linear :model-value="user.value" :color="getColor(user.value, 'primary')" height="16" striped>
