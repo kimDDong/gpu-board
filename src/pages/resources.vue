@@ -1,6 +1,42 @@
 <template>
   <v-container>
-    <!-- 사용자 검색 (제목 포함) -->
+    <!-- 날짜 선택 영역 -->
+    <v-row>
+      <v-col cols="12" md="6">
+        <v-menu v-model="startDateMenu" :close-on-content-click="false" transition="scale-transition" offset-y min-width="auto">
+          <template #activator="{ props }">
+            <v-text-field
+              v-model="selectedStartDate"
+              label="시작 날짜"
+              prepend-icon="mdi-calendar"
+              readonly
+              v-bind="props"
+              dense
+              hide-details
+            />
+          </template>
+          <v-date-picker v-model="selectedStartDate" type="string" @update:modelValue="val => { startDateMenu = false; selectedStartDate = formatDateToString(val); }" />
+        </v-menu>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-menu v-model="endDateMenu" :close-on-content-click="false" transition="scale-transition" offset-y min-width="auto">
+          <template #activator="{ props }">
+            <v-text-field
+              v-model="selectedEndDate"
+              label="종료 날짜"
+              prepend-icon="mdi-calendar"
+              readonly
+              v-bind="props"
+              dense
+              hide-details
+            />
+          </template>
+          <v-date-picker v-model="selectedEndDate" type="string" @update:modelValue="val => { endDateMenu = false; selectedEndDate = formatDateToString(val); }" />
+        </v-menu>
+      </v-col>
+    </v-row>
+
+    <!-- 사용자 검색 -->
     <v-row class="mb-6">
       <v-col cols="12">
         <v-card class="pa-4" style="border:1.5px solid #e0e0e0;">
@@ -28,13 +64,15 @@
 
     <!-- 사용자별 자원 테이블 -->
     <v-row>
-      <v-col cols="12" md="6" v-for="user in filteredUsers" :key="user">
+      <v-col cols="12" md="6"
+        v-for="userObj in filteredUsers"
+        :key="getUserName(userObj)">
         <v-card class="mb-4">
           <v-card-title>
-            <span>{{ user }} - 할당 자원</span>
+            <span>{{ getUserName(userObj) }} - 할당 자원</span>
           </v-card-title>
           <v-card-text>
-            <div v-if="userResources(user).length">
+            <div v-if="userResources(getUserName(userObj)).length">
               <v-table>
                 <thead>
                   <tr>
@@ -45,7 +83,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="r in userResources(user)" :key="r.type + '_' + r.res_id">
+                  <tr v-for="r in userResources(getUserName(userObj))" :key="r.type + '_' + r.res_id">
                     <td>{{ r.type }}</td>
                     <td>{{ r.res_id }}</td>
                     <td>{{ r.start_date }} ~ {{ r.end_date }}</td>
@@ -69,7 +107,7 @@
       <v-card>
         <v-card-title>자원 할당</v-card-title>
         <v-card-text>
-          <v-select label="사용자" :items="users" v-model="assignUser" :rules="[v => !!v || '필수 입력']" dense clearable />
+          <v-select label="사용자" :items="userNamesList" v-model="assignUser" :rules="[v => !!v || '필수 입력']" dense clearable />
           <v-select label="자원 종류" :items="['GPU', 'CPU', 'Memory']" v-model="assignResourceType" dense />
           <v-select label="자원 선택(복수)" v-model="selectedResourceKeys" :items="filteredAvailableResources"
             item-title="label" item-value="key" multiple :rules="[v => v && v.length > 0 || '최소 1개 선택']" dense />
@@ -99,28 +137,73 @@
 import { ref, computed } from 'vue'
 import axios from 'axios'
 
-// 데이터 상태
+// 날짜 선택 State
+const today = new Date()
+const thisYear = today.getFullYear()
+const selectedStartDate = ref(`${thisYear}-01-01`)
+const selectedEndDate = ref(`${thisYear}-12-31`)
+const startDateMenu = ref(false)
+const endDateMenu = ref(false)
+
+function formatDateToString(date) {
+  if (!date) return ''
+  if (typeof date === 'string') return date
+  if (date instanceof Date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+  return ''
+}
+
+// 사용자 데이터 상태 (string or object 모두 대응)
 const users = ref([])
 const resources = ref([])
+
+// user 객체이든 string이든 이름만 반환
+function getUserName(user) {
+  if (!user) return ''
+  if (typeof user === 'string') return user
+  if (typeof user === 'object' && user.name) return user.name
+  // 혹시 name 필드가 없으면 string 변환
+  return String(user)
+}
 
 // 🔍 사용자 검색 (이름 또는 ID)
 const searchKeyword = ref('')
 const filteredUsers = computed(() => {
   if (!searchKeyword.value) return users.value
-  return users.value.filter(u =>
-    u.toLowerCase().includes(searchKeyword.value.toLowerCase())
-  )
+  return users.value.filter(u => {
+    const name = getUserName(u)
+    return name.toLowerCase().includes(searchKeyword.value.toLowerCase())
+  })
 })
+// 모든 유저 이름만 추출 (자원 할당 다이얼로그 등에서 사용)
+const userNamesList = computed(() => users.value.map(getUserName))
 
 // 자원종류(GPU/CPU/Memory/ALL) 필터
 const resourceTypeFilter = ref('ALL')
 
-// 사용자별 자원 필터
-function userResources(user) {
-  let list = resources.value.filter(r => r.user === user)
+// 날짜 범위 내 자원만 필터링
+function isInSelectedPeriod(res) {
+  if (!res.start_date || !res.end_date) return false
+  const start = selectedStartDate.value.replace(/-/g, '')
+  const end = selectedEndDate.value.replace(/-/g, '')
+  const res_start = res.start_date.replace(/-/g, '')
+  const res_end = res.end_date.replace(/-/g, '')
+  // 겹치면 true
+  return !(res_end < start || res_start > end)
+}
+
+// 사용자별 자원 필터 (userName만 비교)
+function userResources(userName) {
+  let list = resources.value.filter(r => r.user === userName)
   if (resourceTypeFilter.value !== 'ALL') {
     list = list.filter(r => r.type === resourceTypeFilter.value)
   }
+  // 날짜 범위 내 할당만 필터링
+  list = list.filter(isInSelectedPeriod)
   return list
 }
 
@@ -151,15 +234,15 @@ const filteredAvailableResources = computed(() =>
   availableResources.value.filter(r => r.type === assignResourceType.value)
 )
 
-// 날짜 선택
+// 날짜 선택 (자원 할당 팝업)
 function onPickStart(v) {
   startObj.value = v
-  startStr.value = v ? `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
+  startStr.value = v ? formatDateToString(v) : ''
   menu1.value = false
 }
 function onPickEnd(v) {
   endObj.value = v
-  endStr.value = v ? `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}` : ''
+  endStr.value = v ? formatDateToString(v) : ''
   menu2.value = false
 }
 function closeAssignDialog() {
