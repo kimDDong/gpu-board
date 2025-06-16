@@ -4,20 +4,21 @@ from datetime import datetime, timedelta
 import random
 
 app = Blueprint('resources_api', __name__)
+CORS(app)
 
-# ==== 더미 유저/자원 데이터 ====
+# --- USERS (이름만) ---
 users = [
     "홍길동", "김철수", "김동현", "김서권", "윤다빈",
     "박지훈", "최예린", "이민호", "한지수", "조윤호",
     "정소연", "오세훈", "서지수", "배상우", "노지윤"
 ]
+
+# --- 자원 목록 (기본 정보만, 할당X) ---
 gpu_models = ["RTX 4090", "A100", "RTX 4080", "L40S"] * 5
 cpu_models = ["Intel Xeon Gold 6338", "AMD EPYC 7543P"] * 10
-
 GPU_COUNT = 20
 CPU_COUNT = 20
-MEMORY_COUNT = 20  # 1TB씩, 총 20TB
-
+MEMORY_COUNT = 20
 resources = []
 for i in range(GPU_COUNT):
     resources.append({"res_id": i, "type": "GPU", "model": gpu_models[i % len(gpu_models)]})
@@ -26,37 +27,21 @@ for i in range(CPU_COUNT):
 for i in range(MEMORY_COUNT):
     resources.append({"res_id": i, "type": "Memory", "model": "DDR4-3200 1TB"})
 
-# ==== 할당정보: 랜덤/더미로 생성 ====
-def random_date():
-    base = datetime(2024, 7, 1)
-    s = base + timedelta(days=random.randint(0, 20))
-    e = s + timedelta(days=random.randint(2, 10))
-    return s.strftime("%Y-%m-%d"), e.strftime("%Y-%m-%d")
-
+# --- allocations : 랜덤 더미로 미리 할당해둠 ---
 allocations = []
-for i in range(8):
-    s, e = random_date()
-    allocations.append({"res_id": i, "type": "GPU", "user": users[i], "start_date": s, "end_date": e})
-for i in range(7):
-    s, e = random_date()
-    allocations.append({"res_id": i, "type": "CPU", "user": users[i+5], "start_date": s, "end_date": e})
-for i in range(5):
-    s, e = random_date()
-    allocations.append({"res_id": i, "type": "Memory", "user": users[i+3], "start_date": s, "end_date": e})
-
-# ==== 시계열 온도 데이터: 날짜별로 생성 ====
-gpu_temp_history = {}
-days = [f"2024-07-{str(i).zfill(2)}" for i in range(1, 32)]
-for i in range(GPU_COUNT):
-    temps = []
-    base = 35 + i % 5
-    for d in days:
-        t = base + random.randint(0, 6) + random.randint(-3, 3)
-        t = max(35, min(t, 90))
-        temps.append(t)
-    gpu_temp_history[f"GPU{i}"] = {"dates": days, "temps": temps}
-
-# ==== API ====
+today = datetime(2025, 6, 16)
+for i, u in enumerate(users[:7]):
+    s = today - timedelta(days=random.randint(1, 200))
+    e = s + timedelta(days=random.randint(3, 20))
+    allocations.append({"res_id": i, "type": "GPU", "user": u, "start_date": s.strftime("%Y-%m-%d"), "end_date": e.strftime("%Y-%m-%d")})
+for i, u in enumerate(users[7:11]):
+    s = today - timedelta(days=random.randint(1, 200))
+    e = s + timedelta(days=random.randint(3, 20))
+    allocations.append({"res_id": i, "type": "CPU", "user": u, "start_date": s.strftime("%Y-%m-%d"), "end_date": e.strftime("%Y-%m-%d")})
+for i, u in enumerate(users[11:14]):
+    s = today - timedelta(days=random.randint(1, 200))
+    e = s + timedelta(days=random.randint(3, 20))
+    allocations.append({"res_id": i, "type": "Memory", "user": u, "start_date": s.strftime("%Y-%m-%d"), "end_date": e.strftime("%Y-%m-%d")})
 
 @app.route("/api/resources", methods=["GET"])
 def get_resources():
@@ -97,15 +82,33 @@ def reclaim_resource():
 def get_users():
     return jsonify(users)
 
-# ==== REPORT/DASHBOARD ENDPOINTS ====
+# === 아래는 보고서 및 차트 등 예시 엔드포인트 ===
+
+# (여기부터는 기존 참고용 차트/리포트 등 API 그대로 두었으니, 프론트에서 쓸 수 있음)
+
+today = datetime(2025, 6, 16)
+days = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(365)][::-1]
+
+def random_date():
+    s = datetime(2025, 1, 1) + timedelta(days=random.randint(0, 300))
+    e = s + timedelta(days=random.randint(2, 10))
+    return s.strftime("%Y-%m-%d"), e.strftime("%Y-%m-%d")
+
+gpu_temp_history = {}
+for i in range(GPU_COUNT):
+    temps = []
+    base = 35 + i % 5
+    for d in days:
+        t = base + random.randint(0, 6) + random.randint(-3, 3)
+        t = max(35, min(t, 90))
+        temps.append(t)
+    gpu_temp_history[f"GPU{i}"] = {"dates": days, "temps": temps}
 
 @app.route("/api/report/sysinfo")
 def report_sysinfo():
-    # 유저수, 자원수, 모델명 등 요약 + 활동중/오프라인 상태
     gpu_used = len([a for a in allocations if a["type"] == "GPU"])
     cpu_used = len([a for a in allocations if a["type"] == "CPU"])
     memory_used = len([a for a in allocations if a["type"] == "Memory"])
-    # 활동중/오프라인: 임의 40~80%를 "활동중"으로 표기
     user_count = len(users)
     user_active = random.randint(int(user_count*0.4), int(user_count*0.8))
     user_inactive = user_count - user_active
@@ -129,18 +132,27 @@ def report_status():
     gpu_names = [f"GPU{i}" for i in range(GPU_COUNT)]
     cpu_names = [f"CPU{i}" for i in range(CPU_COUNT)]
     memory_names = [f"Memory{i}" for i in range(MEMORY_COUNT)]
+    gpu_temps = [gpu_temp_history[f"GPU{i}"]["temps"][-1] for i in range(GPU_COUNT)]
+    cpu_temps = [random.randint(35, 80) for _ in range(CPU_COUNT)]
+    memory_usages = [random.randint(10, 80) for _ in range(MEMORY_COUNT)]
     return jsonify({
         "gpu_names": gpu_names,
         "cpu_names": cpu_names,
-        "memory_names": memory_names
+        "memory_names": memory_names,
+        "gpu_temps": gpu_temps,
+        "cpu_temps": cpu_temps,
+        "memory_usages": memory_usages
     })
 
 @app.route("/api/report/total_usage")
 def report_total_usage():
-    # 각 일자별 전체 사용량(GPU/CPU/Memory)
-    dates = days
+    start = request.args.get("start")
+    end = request.args.get("end")
+    _days = days
+    if start and end and len(start) == 8 and len(end) == 8:
+        _days = [d for d in days if start <= d.replace("-", "") <= end]
     usage = {"gpu": [], "cpu": [], "memory": []}
-    for d in dates:
+    for d in _days:
         cnt = {"GPU": 0, "CPU": 0, "Memory": 0}
         for a in allocations:
             s = datetime.strptime(a["start_date"], "%Y-%m-%d")
@@ -151,17 +163,20 @@ def report_total_usage():
         usage["gpu"].append(cnt["GPU"])
         usage["cpu"].append(cnt["CPU"])
         usage["memory"].append(cnt["Memory"])
-    return jsonify({"dates": dates, **usage})
+    return jsonify({"dates": _days, **usage})
 
 @app.route("/api/report/individual_usage")
 def report_individual_usage():
     typ = request.args.get('type')
     name = request.args.get('name')
+    start = request.args.get('start')
+    end = request.args.get('end')
     idx = int(name.replace(typ, "")) if name and name.replace(typ, "").isdigit() else 0
-    dates = days
-    # 더미: 자원별로 랜덤 사용량(0~1, 단 사용중이면 1)
+    _days = days
+    if start and end and len(start) == 8 and len(end) == 8:
+        _days = [d for d in days if start <= d.replace("-", "") <= end]
     values = []
-    for d in dates:
+    for d in _days:
         alloc = next((a for a in allocations if a["res_id"] == idx and a["type"] == typ), None)
         if alloc:
             s = datetime.strptime(alloc["start_date"], "%Y-%m-%d")
@@ -169,23 +184,27 @@ def report_individual_usage():
             cur = datetime.strptime(d, "%Y-%m-%d")
             values.append(1 if s <= cur <= e else 0)
         else:
-            # 사용중이 아니면 0~0.3 사이 약간의 랜덤 노이즈 (시각화 구색용)
             values.append(round(random.uniform(0, 0.3), 2))
-    return jsonify({"dates": dates, "values": values})
+    return jsonify({"dates": _days, "values": values})
 
 @app.route("/api/report/gpu_temp_series")
 def report_gpu_temp_series():
     name = request.args.get('name', 'GPU0')
-    # 더미: 위에서 만든 gpu_temp_history 사용
+    start = request.args.get('start')
+    end = request.args.get('end')
     hist = gpu_temp_history.get(name, None)
     if not hist:
-        # 이름이 이상할 경우 기본값
         return jsonify({"dates": days, "temps": [40] * len(days)})
-    return jsonify(hist)
+    _dates = hist["dates"]
+    _temps = hist["temps"]
+    if start and end and len(start) == 8 and len(end) == 8:
+        zipped = [(d, t) for d, t in zip(_dates, _temps) if start <= d.replace("-", "") <= end]
+        if zipped:
+            _dates, _temps = zip(*zipped)
+    return jsonify({"dates": list(_dates), "temps": list(_temps)})
 
 @app.route("/api/report/rank")
 def report_rank():
-    # TOP5 누적 사용량, TOP5 누적 유휴(사용하지 않은 기간)
     usage_dict = {u: {"gpu":0, "cpu":0, "memory":0} for u in users}
     idle_dict = {u: 0 for u in users}
     for a in allocations:
@@ -193,12 +212,9 @@ def report_rank():
         e = datetime.strptime(a["end_date"], "%Y-%m-%d")
         days_used = (e - s).days + 1
         usage_dict[a["user"]][a["type"].lower()] += days_used
-
-    # 유휴일: 전체 기간(31일) - 사용한 일수
     for u in users:
         used_days = usage_dict[u]["gpu"] + usage_dict[u]["cpu"] + usage_dict[u]["memory"]
-        idle_dict[u] = max(0, 31*3 - used_days)
-    # 랭킹 데이터
+        idle_dict[u] = max(0, 365*3 - used_days)
     usage_rank = sorted(
         [{"name":u, **usage_dict[u]} for u in users],
         key=lambda x: x["gpu"]+x["cpu"]+x["memory"],
@@ -211,5 +227,35 @@ def report_rank():
     )[:5]
     return jsonify({"usage": usage_rank, "idle": idle_rank})
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# --- ChartJS 스타일의 멀티/싱글 (예시, 1년치 1시간단위) ---
+_multi_series = []
+_single_series = []
+start_time = datetime(today.year, 1, 1)
+for i in range(24*365):
+    ts = (start_time + timedelta(hours=i)).strftime('%Y-%m-%dT%H:%M:%S')
+    _multi_series.append({
+        "timestamp": ts,
+        "datas": [{"id": idx, "value": random.randint(0, 100)} for idx in range(4)]
+    })
+    _single_series.append({
+        "timestamp": ts,
+        "value": random.randint(0, 100)
+    })
+
+@app.route("/api/chartjs/multi")
+def chartjs_multi():
+    start = request.args.get("start")
+    end = request.args.get("end")
+    result = _multi_series
+    if start and end:
+        result = [r for r in _multi_series if start <= r["timestamp"][:10].replace("-", "") <= end]
+    return jsonify(result)
+
+@app.route("/api/chartjs/single")
+def chartjs_single():
+    start = request.args.get("start")
+    end = request.args.get("end")
+    result = _single_series
+    if start and end:
+        result = [r for r in _single_series if start <= r["timestamp"][:10].replace("-", "") <= end]
+    return jsonify(result)
