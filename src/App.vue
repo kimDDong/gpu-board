@@ -32,7 +32,9 @@ const menuList = [
   { title: '사용자 관리', path: '/users' },
   { title: '시스템 자원 관리', path: '/resources' },
   { title: '시스템 보고서', path: '/reports' },
-  { title: '참고용 샘플', path: '/sample' }
+  { title: '참고용 샘플', path: '/sample' },
+  { title: '참고용 샘플(users)', path: '/sample_users' }
+
 ]
 
 function navigate(path) {

@@ -11,7 +11,6 @@ app.register_blueprint(users_api.app)
 app.register_blueprint(resources_api.app)
 app.register_blueprint(common_api.app)
 
-
 CORS(app)
 
 if __name__ == '__main__':
