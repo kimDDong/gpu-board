@@ -7,8 +7,8 @@ import common_api
 
 app = Flask(__name__)
 app.register_blueprint(dashboard_api.app)
-app.register_blueprint(resources_api.app)
 app.register_blueprint(users_api.app)
+app.register_blueprint(resources_api.app)
 app.register_blueprint(common_api.app)
 
 
