@@ -26,7 +26,7 @@ const props = defineProps({
   },
 });
 
-const API_URL = 'http://localhost:8000/api/simple/2'
+const API_URL = 'https://gpu-board.onrender.com:8000/api/simple/2'
 const SIMPLE_DATA = ref(null)
 
 async function fetch() {

@@ -54,7 +54,7 @@ import axios from 'axios';
 import USER_MOD from './USER_MOD.vue';
 import USER_DEL from './USER_DEL.vue';
 
-const API_URL = 'http://localhost:8000/api/sample/users';
+const API_URL = 'https://gpu-board.onrender.com:8000/api/sample/users';
 
 // --- Data for User Table ---
 const users = ref([]);

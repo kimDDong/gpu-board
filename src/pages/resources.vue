@@ -263,7 +263,7 @@ async function confirmAssign() {
   for (const key of selectedResourceKeys.value) {
     const res = availableResources.value.find(r => r.key === key)
     if (!res) continue
-    await axios.post('http://localhost:8000/api/allocations', {
+    await axios.post('https://gpu-board.onrender.com:8000/api/allocations', {
       res_id: res.res_id,
       type: res.type,
       user: assignUser.value,
@@ -277,14 +277,14 @@ async function confirmAssign() {
 
 // 자원목록+유저 불러오기
 async function fetchData() {
-  resources.value = (await axios.get('http://localhost:8000/api/resources')).data
-  users.value = (await axios.get('http://localhost:8000/api/users')).data
+  resources.value = (await axios.get('https://gpu-board.onrender.com:8000/api/resources')).data
+  users.value = (await axios.get('https://gpu-board.onrender.com:8000/api/users')).data
 }
 fetchData()
 
 // 회수
 async function reclaimResource(r) {
-  await axios.post('http://localhost:8000/api/allocations/reclaim', {
+  await axios.post('https://gpu-board.onrender.com:8000/api/allocations/reclaim', {
     res_id: r.res_id,
     type: r.type
   })

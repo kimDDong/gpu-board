@@ -79,7 +79,7 @@ const formData = ref({
     initialActivation: true, // 기본값 true
     usagePeriod: 30, // 기본값 30일
 });
-const API_URL = 'http://localhost:8000/api/sample/users'; // 실제 백엔드 API 주소
+const API_URL = 'https://gpu-board.onrender.com:8000/api/sample/users'; // 실제 백엔드 API 주소
 
 // 폼 참조
 const registrationForm = ref(null);

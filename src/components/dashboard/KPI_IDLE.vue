@@ -15,7 +15,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 const API_INTERVAL = 1000
-const API_URL = 'http://localhost:8000/api/system/idletime'
+const API_URL = 'https://gpu-board.onrender.com:8000/api/system/idletime'
 const IDLETIME = ref(null)
 
 let timer = null

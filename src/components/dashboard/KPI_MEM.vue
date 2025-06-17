@@ -19,7 +19,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 const API_INTERVAL = 2000
-const API_URL = 'http://localhost:8000/api/mem/usage'
+const API_URL = 'https://gpu-board.onrender.com:8000/api/mem/usage'
 const WARNING_LEVEL = 80.0
 const DANGER_LEVEL = 90.0
 const MEM_USAGE = ref(null)

@@ -200,19 +200,19 @@ async function fetchAll() {
   const start = toYYYYMMDD(selectedStartDate.value)
   const end = toYYYYMMDD(selectedEndDate.value)
   // sysinfo 요청시 end 파라미터 추가!
-  sysinfo.value = (await axios.get('http://localhost:8000/api/report/sysinfo', { params: { end } })).data
-  const usage = (await axios.get('http://localhost:8000/api/report/total_usage', { params: { start, end } })).data
+  sysinfo.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/sysinfo', { params: { end } })).data
+  const usage = (await axios.get('https://gpu-board.onrender.com:8000/api/report/total_usage', { params: { start, end } })).data
   totalUsage.value = usage
   usageLoaded.value = true
   await fetchStatus()
-  userRank.value = (await axios.get('http://localhost:8000/api/report/rank', { params: { start, end } })).data
+  userRank.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/rank', { params: { start, end } })).data
   await fetchIndividualDetails()
 }
 onMounted(fetchAll)
 watch([selectedStartDate, selectedEndDate], fetchAll)
 
 async function fetchStatus() {
-  const status = (await axios.get('http://localhost:8000/api/report/status')).data
+  const status = (await axios.get('https://gpu-board.onrender.com:8000/api/report/status')).data
   gpuNames.value = status.gpu_names
   cpuNames.value = status.cpu_names
   memoryNames.value = status.memory_names
@@ -228,18 +228,18 @@ async function fetchIndividualDetails() {
   const start = toYYYYMMDD(selectedStartDate.value)
   const end = toYYYYMMDD(selectedEndDate.value)
   if (selectedGpu.value) {
-    gpuDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value, start, end } })).data
+    gpuDetail.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value, start, end } })).data
   }
   if (selectedCpu.value) {
-    cpuDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value, start, end } })).data
+    cpuDetail.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value, start, end } })).data
   }
   if (selectedMemory.value) {
-    memoryDetail.value = (await axios.get('http://localhost:8000/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value, start, end } })).data
+    memoryDetail.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value, start, end } })).data
   }
   // 선택된 GPU 온도들 동시 갱신
   for (const gpu of selectedGpuTemps.value) {
     if (!gpuTempSeries.value[gpu]) {
-      const res = await axios.get('http://localhost:8000/api/report/gpu_temp_series', { params: { name: gpu, start, end } })
+      const res = await axios.get('https://gpu-board.onrender.com:8000/api/report/gpu_temp_series', { params: { name: gpu, start, end } })
       gpuTempSeries.value[gpu] = res.data
     }
   }

@@ -98,7 +98,7 @@ const route = useRoute()
 onMounted(async () => {
   try {
     const id = route.query.id  // 예: /users/:id/report?id=3
-    const res = await fetch(`http://localhost:8000/api/users/${id}/report`)
+    const res = await fetch(`https://gpu-board.onrender.com:8000/api/users/${id}/report`)
     const data = await res.json()
     user.value = data  // name, cpu/gpu/mem 등 포함되도록 백엔드 구조에 맞게
   } catch (err) {
