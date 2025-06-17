@@ -84,8 +84,6 @@ def get_users():
 
 # === 아래는 보고서 및 차트 등 예시 엔드포인트 ===
 
-# (여기부터는 기존 참고용 차트/리포트 등 API 그대로 두었으니, 프론트에서 쓸 수 있음)
-
 today = datetime(2025, 6, 16)
 days = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(365)][::-1]
 
@@ -106,16 +104,22 @@ for i in range(GPU_COUNT):
 
 @app.route("/api/report/sysinfo")
 def report_sysinfo():
-    gpu_used = len([a for a in allocations if a["type"] == "GPU"])
-    cpu_used = len([a for a in allocations if a["type"] == "CPU"])
-    memory_used = len([a for a in allocations if a["type"] == "Memory"])
+    # 날짜 필터 파라미터 (yyyyMMdd)
+    end = request.args.get("end")
+    if end and len(end) == 8:
+        end_dt = datetime.strptime(end, "%Y%m%d")
+    else:
+        end_dt = datetime.now()
+    # 종료일 기준 할당현황 카운트
+    gpu_used = len([a for a in allocations if a["type"] == "GPU"
+                    and datetime.strptime(a["start_date"], "%Y-%m-%d") <= end_dt <= datetime.strptime(a["end_date"], "%Y-%m-%d")])
+    cpu_used = len([a for a in allocations if a["type"] == "CPU"
+                    and datetime.strptime(a["start_date"], "%Y-%m-%d") <= end_dt <= datetime.strptime(a["end_date"], "%Y-%m-%d")])
+    memory_used = len([a for a in allocations if a["type"] == "Memory"
+                    and datetime.strptime(a["start_date"], "%Y-%m-%d") <= end_dt <= datetime.strptime(a["end_date"], "%Y-%m-%d")])
     user_count = len(users)
-    user_active = random.randint(int(user_count*0.4), int(user_count*0.8))
-    user_inactive = user_count - user_active
     return jsonify({
-        "user_count": len(users),
-        "user_active": user_active,
-        "user_inactive": user_inactive,
+        "user_count": user_count,
         "gpu_count": GPU_COUNT,
         "gpu_models": sorted(list(set([r["model"] for r in resources if r["type"] == "GPU"]))),
         "gpu_used": gpu_used,
@@ -227,7 +231,6 @@ def report_rank():
     )[:5]
     return jsonify({"usage": usage_rank, "idle": idle_rank})
 
-# --- ChartJS 스타일의 멀티/싱글 (예시, 1년치 1시간단위) ---
 _multi_series = []
 _single_series = []
 start_time = datetime(today.year, 1, 1)

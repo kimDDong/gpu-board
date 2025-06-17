@@ -1,3 +1,4 @@
+<!-- src/components/reports/SystemInfoCards.vue -->
 <template>
   <v-row class="mb-6">
     <v-col cols="12" md="3">
@@ -8,20 +9,6 @@
         </div>
         <div class="d-flex align-center">
           <div class="text-h3 font-weight-bold">{{ sysinfo.user_count }}</div>
-          <div class="ml-4 d-flex align-center" style="gap:0.4em">
-            <span>
-              <v-icon color="green" size="16" v-if="sysinfo.user_active > 0">mdi-circle</v-icon>
-              <span class="text-caption">{{ sysinfo.user_active }}</span>
-            </span>
-            <span>
-              <v-icon color="red" size="16" v-if="sysinfo.user_inactive > 0">mdi-circle</v-icon>
-              <span class="text-caption">{{ sysinfo.user_inactive }}</span>
-            </span>
-          </div>
-        </div>
-        <div class="text-caption mt-1">
-          활동중 <span class="font-weight-bold" style="color:#b9f6ca">{{ sysinfo.user_active }}</span>,
-          오프라인 <span class="font-weight-bold" style="color:#ff8a80">{{ sysinfo.user_inactive }}</span>
         </div>
       </v-card>
     </v-col>

@@ -199,8 +199,8 @@ const gpuTempLineOptions = {
 async function fetchAll() {
   const start = toYYYYMMDD(selectedStartDate.value)
   const end = toYYYYMMDD(selectedEndDate.value)
-  // 모든 API에 기간 파라미터 추가!
-  sysinfo.value = (await axios.get('http://localhost:8000/api/report/sysinfo')).data
+  // sysinfo 요청시 end 파라미터 추가!
+  sysinfo.value = (await axios.get('http://localhost:8000/api/report/sysinfo', { params: { end } })).data
   const usage = (await axios.get('http://localhost:8000/api/report/total_usage', { params: { start, end } })).data
   totalUsage.value = usage
   usageLoaded.value = true
