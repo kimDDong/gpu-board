@@ -15,7 +15,7 @@ import { onMounted, ref } from 'vue'
 import axios from 'axios'
 const events = ref([])
 onMounted(async () => {
-  events.value = (await axios.get('https://gpu-board.onrender.com:8000/api/reports/calendar')).data
+  events.value = (await axios.get('https://gpu-board.onrender.com/api/reports/calendar')).data
 })
 </script>
 <style>

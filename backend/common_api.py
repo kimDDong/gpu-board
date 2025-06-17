@@ -21,7 +21,7 @@ def simple2():
 
 # --- API ---
 '''
-url : https://gpu-board.onrender.com:8000/api/chartjs/multi?start=20250101&end=20250330
+url : https://gpu-board.onrender.com/api/chartjs/multi?start=20250101&end=20250330
 JSON :
 [
     {"timestamp": ... , "datas": [{"id": 0,"value": 0}, ... ]},
@@ -48,7 +48,7 @@ def multi_chart_js():
     return jsonify(sampled_multi_data)
 
 '''
-url : https://gpu-board.onrender.com:8000/api/chartjs/single?start=20250101&end=20250330
+url : https://gpu-board.onrender.com/api/chartjs/single?start=20250101&end=20250330
 JSON :
 [
     {"timestamp": ... , "datas": "value": 0 },

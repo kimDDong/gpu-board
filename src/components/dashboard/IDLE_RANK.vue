@@ -32,7 +32,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 const API_INTERVAL = 1000
-const API_URL = 'https://gpu-board.onrender.com:8000/api/idle_user_rank'
+const API_URL = 'https://gpu-board.onrender.com/api/idle_user_rank'
 const USERS_IDLE = ref([])
 
 let timer = null

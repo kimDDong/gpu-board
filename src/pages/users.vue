@@ -187,7 +187,7 @@ const toggleUserActivation = async (user) => {
   const confirmed = confirm(`정말로 ${user.name} 계정을 ${user.active ? '비활성화' : '활성화'}하시겠습니까?`)
   if (!confirmed) return
 
-  const res = await axios.post(`https://gpu-board.onrender.com:8000/api/users/${user.id}/${action}`)
+  const res = await axios.post(`https://gpu-board.onrender.com/api/users/${user.id}/${action}`)
   const idx = users.value.findIndex(u => u.id === user.id)
   if (idx !== -1) users.value[idx] = res.data.user
 }
@@ -201,7 +201,7 @@ const openReport = (user) => {
 
 
 const fetchUsers = async () => {
-  const res = await axios.get('https://gpu-board.onrender.com:8000/api/users')
+  const res = await axios.get('https://gpu-board.onrender.com/api/users')
   users.value = res.data
 }
 
@@ -214,7 +214,7 @@ const addUser = () => {
 const confirmAddUser = async () => {
   if (!newUser.value.id || !newUser.value.name || !newUser.value.role) return alert('모든 항목을 입력해주세요.')
   if (users.value.some(u => u.id === newUser.value.id)) return alert('이미 존재하는 아이디입니다.')
-  const res = await axios.post('https://gpu-board.onrender.com:8000/api/users', newUser.value)
+  const res = await axios.post('https://gpu-board.onrender.com/api/users', newUser.value)
   users.value.push(res.data.user)
   dialogAdd.value = false
 }
@@ -225,7 +225,7 @@ const editUser = (user) => {
 }
 
 const confirmEditUser = async () => {
-  const res = await axios.put(`https://gpu-board.onrender.com:8000/api/users/${editUserData.value.id}`, {
+  const res = await axios.put(`https://gpu-board.onrender.com/api/users/${editUserData.value.id}`, {
     name: editUserData.value.name,
     role: editUserData.value.role,
     expiry: editUserData.value.expiry
@@ -236,13 +236,13 @@ const confirmEditUser = async () => {
 }
 
 const deleteUser = async (userId) => {
-  await axios.delete(`https://gpu-board.onrender.com:8000/api/users/${userId}`)
+  await axios.delete(`https://gpu-board.onrender.com/api/users/${userId}`)
   users.value = users.value.filter(u => u.id !== userId)
 }
 
 watch(selectedRole, async (newRole) => {
   if (!newRole) return
-  const res = await axios.get(`https://gpu-board.onrender.com:8000/api/roles/${newRole}`)
+  const res = await axios.get(`https://gpu-board.onrender.com/api/roles/${newRole}`)
   const savedPerms = res.data.permissions || []
   permissions.value.forEach(p => p.value = savedPerms.includes(p.label))
 })
@@ -250,7 +250,7 @@ watch(selectedRole, async (newRole) => {
 const savePermissions = async () => {
   if (!selectedRole.value) return alert('역할을 선택하세요.')
   const selectedPerms = permissions.value.filter(p => p.value).map(p => p.label)
-  await axios.post('https://gpu-board.onrender.com:8000/api/roles', {
+  await axios.post('https://gpu-board.onrender.com/api/roles', {
     role: selectedRole.value,
     permissions: selectedPerms
   })
@@ -315,7 +315,7 @@ const renderGradientChart = async (canvas, labels, values) => {
 }*/
 
 const fetchUserById = async (id) => {
-  const response = await fetch(`https://gpu-board.onrender.com:8000/api/users/${id}/report`)
+  const response = await fetch(`https://gpu-board.onrender.com/api/users/${id}/report`)
   if (!response.ok) throw new Error('User not found')
   return await response.json()
 }

@@ -25,7 +25,7 @@ const props = defineProps({
     },
 });
 
-const API_URL = `https://gpu-board.onrender.com:8000/api/sample/users/${props.userName}`;
+const API_URL = `https://gpu-board.onrender.com/api/sample/users/${props.userName}`;
 
 const showDialog = ref(false);
 const loading = ref(false);

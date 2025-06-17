@@ -99,7 +99,7 @@ const FROM_DATA = ref({
     usagePeriod: 0,
 });
 
-const API_URL = `https://gpu-board.onrender.com:8000/api/sample/users/${props.userName}`;
+const API_URL = `https://gpu-board.onrender.com/api/sample/users/${props.userName}`;
 
 // 폼 참조
 const editForm = ref(null);

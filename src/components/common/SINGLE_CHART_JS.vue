@@ -27,7 +27,7 @@ const props = defineProps({
 
 Chart.register(...registerables);
 
-const API_URL = 'https://gpu-board.onrender.com:8000/api/chartjs/single'; // API 엔드포인트 변경
+const API_URL = 'https://gpu-board.onrender.com/api/chartjs/single'; // API 엔드포인트 변경
 const SINGLE_SERIES = ref([]); // 단일 시리즈 데이터를 저장할 ref
 
 const singleChartCanvas = ref(null); // canvas 엘리먼트의 참조

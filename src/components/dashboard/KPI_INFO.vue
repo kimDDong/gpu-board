@@ -27,10 +27,10 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 const API_INTERVAL = 1000
-const API_URL_CPU_COUNT = 'https://gpu-board.onrender.com:8000/api/cpu/count'
-const API_URL_GPU_COUNT = 'https://gpu-board.onrender.com:8000/api/gpu/count'
-const API_URL_MEM_TOTAL = 'https://gpu-board.onrender.com:8000/api/mem/total'
-const API_URL_UPTIME = 'https://gpu-board.onrender.com:8000/api/system/uptime'
+const API_URL_CPU_COUNT = 'https://gpu-board.onrender.com/api/cpu/count'
+const API_URL_GPU_COUNT = 'https://gpu-board.onrender.com/api/gpu/count'
+const API_URL_MEM_TOTAL = 'https://gpu-board.onrender.com/api/mem/total'
+const API_URL_UPTIME = 'https://gpu-board.onrender.com/api/system/uptime'
 
 const CPU_COUNT = ref(null)
 const GPU_COUNT = ref(null)

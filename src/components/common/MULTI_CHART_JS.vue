@@ -27,7 +27,7 @@ const props = defineProps({
 
 Chart.register(...registerables);
 
-const API_URL = 'https://gpu-board.onrender.com:8000/api/chartjs/multi'
+const API_URL = 'https://gpu-board.onrender.com/api/chartjs/multi'
 const MULTI_SERIES = ref([]);
 
 const mulitChartCanvas = ref(null);

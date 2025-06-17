@@ -13,7 +13,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie'
 import axios from 'axios'
 
 const API_INTERVAL = 500
-const API_URL = 'https://gpu-board.onrender.com:8000/api/cpu/usage'
+const API_URL = 'https://gpu-board.onrender.com/api/cpu/usage'
 const smoothieCanvas = ref(null)
 
 let chart = null

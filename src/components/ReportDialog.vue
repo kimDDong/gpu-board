@@ -267,18 +267,18 @@ const lineOptions = {
 }
 
 async function fetchAll() {
-  sysinfo.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/sysinfo')).data
-  const usage = (await axios.get('https://gpu-board.onrender.com:8000/api/report/total_usage')).data
+  sysinfo.value = (await axios.get('https://gpu-board.onrender.com/api/report/sysinfo')).data
+  const usage = (await axios.get('https://gpu-board.onrender.com/api/report/total_usage')).data
   totalUsage.value = usage
   usageLoaded.value = true
   await fetchStatus()
-  userRank.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/rank')).data
+  userRank.value = (await axios.get('https://gpu-board.onrender.com/api/report/rank')).data
   fetchIndividualDetails()
 }
 onMounted(fetchAll)
 
 async function fetchStatus() {
-  const status = (await axios.get('https://gpu-board.onrender.com:8000/api/report/status')).data
+  const status = (await axios.get('https://gpu-board.onrender.com/api/report/status')).data
   gpuNames.value = status.gpu_names
   cpuNames.value = status.cpu_names
   memoryNames.value = status.memory_names
@@ -293,13 +293,13 @@ async function fetchStatus() {
 
 async function fetchIndividualDetails() {
   if (selectedGpu.value) {
-    gpuDetail.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value } })).data
+    gpuDetail.value = (await axios.get('https://gpu-board.onrender.com/api/report/individual_usage', { params: { type: "GPU", name: selectedGpu.value } })).data
   }
   if (selectedCpu.value) {
-    cpuDetail.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value } })).data
+    cpuDetail.value = (await axios.get('https://gpu-board.onrender.com/api/report/individual_usage', { params: { type: "CPU", name: selectedCpu.value } })).data
   }
   if (selectedMemory.value) {
-    memoryDetail.value = (await axios.get('https://gpu-board.onrender.com:8000/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value } })).data
+    memoryDetail.value = (await axios.get('https://gpu-board.onrender.com/api/report/individual_usage', { params: { type: "Memory", name: selectedMemory.value } })).data
   }
 }
 watch(selectedGpu, fetchIndividualDetails)

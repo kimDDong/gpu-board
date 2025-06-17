@@ -20,7 +20,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 
 const API_INTERVAL = 2000
-const API_URL = 'https://gpu-board.onrender.com:8000/api/gpu/usage'
+const API_URL = 'https://gpu-board.onrender.com/api/gpu/usage'
 const WARNING_LEVEL = 80
 const DANGER_LEVEL = 90
 const GPU_USAGE = ref(null)
