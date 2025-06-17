@@ -71,8 +71,6 @@ import { useRoute } from 'vue-router'
 import GPU_CHART from '@/components/user/GPU_CHART.vue'; // 실제 경로에 맞게 수정
 import CPU_CHART from '@/components/user/CPU_CHART.vue';
 import MEM_CHART from '@/components/user/MEM_CHART.vue';
-import SIMPLE_UPDATE_1 from '@/components/common/SIMPLE_UPDATE_1.vue';
-import SIMPLE_UPDATE_2 from '@/components/common/SIMPLE_UPDATE_2.vue';
 
 const selectedStartDate = ref('2025-01-01');
 const selectedEndDate = ref('2025-01-31');
